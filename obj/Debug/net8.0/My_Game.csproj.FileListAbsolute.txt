@@ -27,3 +27,8 @@ C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\dark_block.x
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\gray_block.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\delete.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\yellow_tank.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\obj\Debug\net8.0\My_Game.sourcelink.json
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\myfont.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\blue_tank.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\green_tank.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\red_tank.xnb

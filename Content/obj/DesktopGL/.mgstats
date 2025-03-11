@@ -1,2 +1,4 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/yellow_tank.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/yellow_tank.xnb","TextureProcessor","Texture2DContent",4695,409685,0,2275249
+"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/blue_tank.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/blue_tank.xnb","TextureProcessor","Texture2DContent",4692,409685,0,1691228
+"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/green_tank.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/green_tank.xnb","TextureProcessor","Texture2DContent",4707,409685,0,0178282
+"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/red_tank.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/red_tank.xnb","TextureProcessor","Texture2DContent",4692,409685,0,0156071

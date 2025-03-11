@@ -4,12 +4,20 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/blue_tank.png</File>
     <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/dark_block.png</File>
     <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/delete.png</File>
     <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/gray_block.png</File>
+    <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/green_tank.png</File>
+    <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/myfont.spritefont</File>
+    <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/red_tank.png</File>
     <File>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/yellow_tank.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
