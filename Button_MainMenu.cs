@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-public class Button
+public class Button_MainMenu
 {
     public Rectangle Bounds { get; private set; }
     public string Text { get; private set; }
@@ -11,7 +11,7 @@ public class Button
     private bool _isHovered;
     public bool IsSelected { get; private set; } // Додаємо змінну для вибору
 
-    public Button(Rectangle bounds, string text, SpriteFont font, Texture2D texture)
+    public Button_MainMenu(Rectangle bounds, string text, SpriteFont font, Texture2D texture)
     {
         Bounds = bounds;
         Text = text;

@@ -32,3 +32,7 @@ C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\myfont.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\blue_tank.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\green_tank.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\red_tank.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\blue_bomb.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\green_bomb.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\red_bomb.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\yellow_bomb.xnb

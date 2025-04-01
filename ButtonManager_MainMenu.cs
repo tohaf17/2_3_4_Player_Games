@@ -1,22 +1,26 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
-public class ButtonManager
+public class ButtonManager_MainMenu
 {
-    public List<Button> Buttons { get; private set; }
-    public int SelectedPlayers { get; private set; } = 0; // Кількість вибраних гравців
+    public List<Button_MainMenu> Buttons { get; private set; }
+    public int SelectedPlayers { get; private set; } = 0;
 
-    public ButtonManager(SpriteFont font, Texture2D texture, int screenWidth, int screenHeight)
+    // Додаємо подію для сповіщення про вибір гравців
+    public event Action<int> PlayersSelected;
+
+    public ButtonManager_MainMenu(SpriteFont font, Texture2D texture, int screenWidth, int screenHeight)
     {
-        Buttons = new List<Button>();
+        Buttons = new List<Button_MainMenu>();
 
         string[] labels = { "2 Players", "3 Players", "4 Players" };
         int buttonWidth = 200;
         int buttonHeight = 60;
         int spacing = 20;
-        
+
         int totalHeight = (buttonHeight + spacing) * labels.Length - spacing;
         int startY = (screenHeight - totalHeight) / 2;
 
@@ -25,7 +29,7 @@ public class ButtonManager
             int x = (screenWidth - buttonWidth) / 2;
             int y = startY + i * (buttonHeight + spacing);
 
-            Buttons.Add(new Button(new Rectangle(x, y, buttonWidth, buttonHeight), labels[i], font, texture));
+            Buttons.Add(new Button_MainMenu(new Rectangle(x, y, buttonWidth, buttonHeight), labels[i], font, texture));
         }
     }
 
@@ -37,16 +41,17 @@ public class ButtonManager
 
             if (button.IsSelected)
             {
-                // Скидаємо вибір у всіх кнопках, крім обраної
                 foreach (var otherButton in Buttons)
                 {
                     if (otherButton != button) otherButton.Deselect();
                 }
 
-                // Записуємо вибір у змінну
                 if (button.Text == "2 Players") SelectedPlayers = 2;
                 else if (button.Text == "3 Players") SelectedPlayers = 3;
                 else if (button.Text == "4 Players") SelectedPlayers = 4;
+
+                // Викликаємо подію, якщо є підписники
+                PlayersSelected?.Invoke(SelectedPlayers);
             }
         }
     }

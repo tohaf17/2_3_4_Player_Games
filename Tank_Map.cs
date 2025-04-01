@@ -14,12 +14,14 @@ namespace My_Game
         private Texture2D blue;
         private Texture2D red;
         
-        private Tank_Movement red_tank;
-        private Tank_Movement blue_tank;
-        private Tank_Movement green_tank;
-        private Tank_Movement yellow_tank;
+        private Tank red_tank;
+        private Tank blue_tank;
+        private Tank green_tank;
+        private Tank yellow_tank;
+        
+        private Game1 _game;
 
-        private int _numPlayers; // Кількість гравців
+        private int _numPlayers; 
 
         private int[,] map =
         {
@@ -39,7 +41,7 @@ namespace My_Game
         public Tank_Map(Game1 game, int numPlayers)
         {
             _numPlayers = numPlayers;
-
+            _game = game;
             gray_block = game.Content.Load<Texture2D>("gray_block");
             dark_block = game.Content.Load<Texture2D>("dark_block");
             red = game.Content.Load<Texture2D>("red_tank");
@@ -54,27 +56,34 @@ namespace My_Game
         {
             if (_numPlayers >= 2)
             {
-                red_tank = new Tank_Movement(red, new Vector2(628, 378), Keys.Q);
-                blue_tank = new Tank_Movement(blue, new Vector2(1396, 698), Keys.M);
+                red_tank = new Tank(red, new Vector2(628, 378), Keys.Q);
+                blue_tank = new Tank(blue, new Vector2(1396, 698), Keys.M);
+                
             }
 
             if (_numPlayers >= 3)
             {
-                green_tank = new Tank_Movement(green, new Vector2(1396, 378), Keys.NumPad9);
+                green_tank = new Tank(green, new Vector2(1396, 378), Keys.NumPad9);
             }
 
             if (_numPlayers == 4)
             {
-                yellow_tank = new Tank_Movement(yellow, new Vector2(628, 698), Keys.V);
+                yellow_tank = new Tank(yellow, new Vector2(628, 698), Keys.V);
             }
         }
 
-        public void Update(GameTime gameTime) // Додаємо параметр gameTime
+        public void Update(GameTime gameTime)
         {
-            red_tank?.Update();
-            blue_tank?.Update();
-            green_tank?.Update();
-            yellow_tank?.Update();
+            Tank[] tanks = { red_tank, blue_tank, green_tank, yellow_tank };
+
+            foreach (var tank in tanks)
+            {
+                if (tank != null)
+                {
+                    // Перевіряємо колізії з іншими танками та картою
+                    tank.Update(tanks, map, tile_size,_game);
+                }
+            }
         }
 
 

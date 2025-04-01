@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SourceFile>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/gray_block.png</SourceFile>
-  <SourceTime>2025-02-21T00:08:27.9135491+02:00</SourceTime>
+  <SourceTime>2025-03-12T00:30:50.2924875+02:00</SourceTime>
   <DestFile>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/gray_block.xnb</DestFile>
-  <DestTime>2025-03-10T22:09:07.3210048+02:00</DestTime>
+  <DestTime>2025-03-18T21:48:17.6093301+02:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2024-08-16T20:05:56+03:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
