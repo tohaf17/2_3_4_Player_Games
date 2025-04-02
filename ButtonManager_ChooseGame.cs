@@ -32,11 +32,12 @@ public class ButtonManager_ChooseGame
         }
     }
 
-    public void Update(MouseState mouseState)
+    public void Update(MouseState mouseState, MouseState previousMouseState)
     {
         for (int i = 0; i < Buttons.Count; i++)
         {
-            Buttons[i].Update(mouseState);
+            // Передаємо попередній стан миші в метод Update кожної кнопки
+            Buttons[i].Update(mouseState, previousMouseState);
 
             if (Buttons[i].IsSelected)
             {
@@ -46,13 +47,10 @@ public class ButtonManager_ChooseGame
                 }
 
                 SelectedGame = i;
-
-                // Викликаємо подію, якщо є підписники
                 GameSelected?.Invoke(SelectedGame);
             }
         }
     }
-
     public void ResetSelectedGame()
     {
         SelectedGame = -1;

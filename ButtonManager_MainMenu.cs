@@ -33,11 +33,12 @@ public class ButtonManager_MainMenu
         }
     }
 
-    public void Update(MouseState mouseState)
+    public void Update(MouseState mouseState, MouseState previousMouseState)
     {
         foreach (var button in Buttons)
         {
-            button.Update(mouseState);
+            // Передаємо попередній стан миші в метод Update кожної кнопки
+            button.Update(mouseState, previousMouseState);
 
             if (button.IsSelected)
             {
@@ -50,7 +51,6 @@ public class ButtonManager_MainMenu
                 else if (button.Text == "3 Players") SelectedPlayers = 3;
                 else if (button.Text == "4 Players") SelectedPlayers = 4;
 
-                // Викликаємо подію, якщо є підписники
                 PlayersSelected?.Invoke(SelectedPlayers);
             }
         }

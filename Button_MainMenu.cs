@@ -19,13 +19,14 @@ public class Button_MainMenu
         _texture = texture;
     }
 
-    public void Update(MouseState mouseState)
+    public void Update(MouseState mouseState, MouseState previousMouseState)
     {
         _isHovered = Bounds.Contains(mouseState.Position);
-        
-        if (_isHovered && mouseState.LeftButton == ButtonState.Pressed)
+
+        // Перевіряємо, чи кнопка була натиснута в цьому кадрі, але не в попередньому
+        if (_isHovered && mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
         {
-            IsSelected = true; // Кнопка вибрана
+            IsSelected = true;
         }
     }
 

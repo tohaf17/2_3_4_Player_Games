@@ -18,11 +18,12 @@ public class Button_ChooseGame
         this.imageTexture = imageTexture;
     }
 
-    public void Update(MouseState mouseState)
+    public void Update(MouseState mouseState, MouseState previousMouseState)
     {
         isHovered = Bounds.Contains(mouseState.Position);
 
-        if (isHovered && mouseState.LeftButton == ButtonState.Pressed)
+        // Перевіряємо, чи кнопка була натиснута в цьому кадрі, але не в попередньому
+        if (isHovered && mouseState.LeftButton == ButtonState.Pressed && previousMouseState.LeftButton == ButtonState.Released)
         {
             IsSelected = true;
         }

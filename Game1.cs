@@ -28,6 +28,8 @@ namespace My_Game
 
         private Texture2D tank;
         private Texture2D chicken;
+        
+        private MouseState _previousMouseState;
 
         public Game1() //конструктор ігри основної
         {
@@ -116,22 +118,20 @@ namespace My_Game
             switch (_gameState)
             {
                 case GameState.MainMenu:
-                    _buttonManagerMainMenu.Update(mouseState);
+                    _buttonManagerMainMenu.Update(mouseState, _previousMouseState); // Передаємо попередній стан
                     break;
                 case GameState.Choose_Game:
-                    _buttonManagerChooseGame?.Update(mouseState);
+                    _buttonManagerChooseGame?.Update(mouseState, _previousMouseState); // Передаємо попередній стан
                     break;
                 case GameState.Tank:
                     _gamePlay?.Update(gameTime);
                     break;
-                // case GameState.Chicken:
-                //     _gamePlay?.Update(gameTime);
-                //     break;
                 default:
                     _gameState = GameState.MainMenu;
                     break;
             }
 
+            _previousMouseState = mouseState; // Зберігаємо поточний стан для наступного кадру
             base.Update(gameTime);
         }
 

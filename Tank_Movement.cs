@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace My_Game
 {
-    public class Tank
+    public class Tank:Player,IMovement
     {
         private Texture2D texture;
         public Texture2D Texture { get; set; }
@@ -42,12 +42,8 @@ namespace My_Game
             textureData = new Color[texture.Width * texture.Height];
             texture.GetData(textureData);
         }
-
         
-        private double lastFireTime = 0;
-        private double fireCooldown = 3.0; 
-
-        public void Update(Tank[] tanks, int[,] map, int tileSize,Game1 game)
+        public void Movement(Player[] tanks, int[,] map, int tileSize,Game1 game)
         {
             KeyboardState state = Keyboard.GetState();
             Vector2 new_position = position;
@@ -57,12 +53,12 @@ namespace My_Game
 
             if (state.IsKeyDown(key))
             {
-                Vector2 direction = RotateVector(new Vector2(0, -1), rotation);
+                Vector2 direction = Move(new Vector2(0, -1), rotation);
                 new_position = position - direction * speed;
 
                 foreach (var otherTank in tanks)
                 {
-                    if (otherTank != null && otherTank != this && Intersects(otherTank, new_position))
+                    if (otherTank != null && otherTank != this && Intersects((Tank)otherTank, new_position))
                     {
                         return; 
                     }
@@ -76,6 +72,10 @@ namespace My_Game
             {
                 rotation += MathHelper.ToRadians(rotationSpeed);
             }
+        }
+        public void Update(Tank[] tanks, int[,] map, int tileSize,Game1 game)
+        {
+            Movement(tanks, map, tileSize, game);
         }
 
 
@@ -119,7 +119,7 @@ namespace My_Game
             int top = Math.Max((int)newPosA.Y, (int)b.position.Y);
             int bottom = Math.Min((int)newPosA.Y + a.texture.Height, (int)b.position.Y + b.texture.Height);
             int left = Math.Max((int)newPosA.X, (int)b.position.X);
-            int right = Math.Min((int)newPosA.X + a.texture.Width, (int)b.position.X + b.texture.Width);
+            int  right = Math.Min((int)newPosA.X + a.texture.Width, (int)b.position.X + b.texture.Width);
 
             for (int y = top; y < bottom; y++)
             {
@@ -170,19 +170,14 @@ namespace My_Game
             return textureData[index];
         }
 
-        private bool isDestroyed = false;
-
-        public void SetDestroyed()
-        {
-            isDestroyed = true;
-        }
+        
         public void Draw(SpriteBatch spriteBatch)
         {
-            Color color = isDestroyed ? Color.Black : Color.White;
+            Color color = Color.White;
             spriteBatch.Draw(texture, position, null, color, rotation, origin, 64f / texture.Width, SpriteEffects.None, 0f);
         }
 
-        private Vector2 RotateVector(Vector2 point, float angle)
+        private Vector2 Move(Vector2 point, float angle)
         {
             float cos = (float)System.Math.Cos(angle);
             float sin = (float)System.Math.Sin(angle);
