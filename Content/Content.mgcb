@@ -73,6 +73,18 @@
 /processorParam:TextureFormat=Color
 /build:gray_block.png
 
+#begin gray_tank.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:gray_tank.png
+
 #begin green_tank.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -95,7 +107,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:green.png;green_bomb.png
+/build:green.png
 
 #begin myfont.spritefont
 /importer:FontDescriptionImporter

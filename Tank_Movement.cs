@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace My_Game
 {
-    public class Tank:Player,IMovement
+    public class Tank : Player, IMovement
     {
         private Texture2D texture;
         public Texture2D Texture { get; set; }
@@ -15,41 +15,64 @@ namespace My_Game
         public Vector2 Position { get; set; }
         private float speed = 3.5f;
         private float rotationSpeed = 3.5f;
-        private float rotation = 0f; 
+        private float rotation = 0f;
         private Vector2 origin;
         private Vector2 barrelTip = new Vector2(0, -10);
         private Keys key;
         private Color[] textureData;
-        
+
         private Dictionary<Tank, Bomb> dict;
-        
+
         private Texture2D yellow;
         private Texture2D green;
         private Texture2D blue;
         private Texture2D red;
+        private Texture2D grey;
 
-        private readonly int minX=  596;
+        private readonly int minX = 596;
         private readonly int maxX = 1428;
         private readonly int minY = 346;
         private readonly int maxY = 730;
 
-        public Tank(Texture2D texture, Vector2 startPosition, Keys key)
+        // Додаємо оголошення полів
+        private KeyboardState keyboardState;
+        private Keys fireKey;
+        private Texture2D bombTexture;
+        public Bomb bomb { get; set; }
+        
+
+        public Tank(Texture2D texture, Vector2 startPosition, Keys key, Texture2D greyTexture, Texture2D bombTexture)
         {
+            if (texture == null)
+                throw new ArgumentNullException("texture є null!");
+            if (startPosition == null)
+                throw new ArgumentNullException("startposition є null!");
+            if (key == null)
+                throw new ArgumentNullException("key є null!");
+            if (greyTexture == null)
+                throw new ArgumentNullException("graytexture є null!");
+            if (bombTexture == null)
+                throw new ArgumentNullException("bombtexture є null!");
+
             this.texture = texture;
+            this.grey = greyTexture;
+            this.bombTexture = bombTexture;
             position = startPosition;
             origin = new Vector2(texture.Width / 2, texture.Height / 2);
             this.key = key;
             textureData = new Color[texture.Width * texture.Height];
             texture.GetData(textureData);
+
+            fireKey = Keys.Space;
         }
-        
-        public void Movement(Player[] tanks, int[,] map, int tileSize,Game1 game)
+
+
+        public void Movement(Player[] tanks, int[,] map, int tileSize, Game1 game)
         {
             KeyboardState state = Keyboard.GetState();
             Vector2 new_position = position;
-            
-            dict = new Dictionary<Tank, Bomb>();
 
+            dict = new Dictionary<Tank, Bomb>();
 
             if (state.IsKeyDown(key))
             {
@@ -60,50 +83,55 @@ namespace My_Game
                 {
                     if (otherTank != null && otherTank != this && Intersects((Tank)otherTank, new_position))
                     {
-                        return; 
+                        return;
                     }
                 }
 
                 position = new_position;
                 CollidesWithMap(map, tileSize);
-
             }
             else
             {
                 rotation += MathHelper.ToRadians(rotationSpeed);
             }
         }
-        public void Update(Tank[] tanks, int[,] map, int tileSize,Game1 game)
+
+        public void Update(Tank[] tanks, int[,] map, int tileSize, Game1 game, GameTime gameTime)
         {
+            keyboardState = Keyboard.GetState(); // Отримуємо стан клавіатури
+
+            if (keyboardState.IsKeyDown(fireKey) && bomb == null)
+            {
+                bomb = new Bomb(bombTexture, position, rotation, game.Content.Load<Texture2D>("dark_block"));
+            }
+            bomb?.Update(map, tileSize, tanks, gameTime);
             Movement(tanks, map, tileSize, game);
         }
-
 
         private void CollidesWithMap(int[,] map, int tileSize)
         {
             if (position.X < minX)
             {
-                position .X = minX;
+                position.X = minX;
             }
-            if (position .X > maxX)
+            if (position.X > maxX)
             {
-                position .X = maxX;
+                position.X = maxX;
             }
-            if (position .Y < minY)
+            if (position.Y < minY)
             {
-                position .Y = minY;
+                position.Y = minY;
             }
-            if (position .Y > maxY)
+            if (position.Y > maxY)
             {
-                position .Y = maxY;
+                position.Y = maxY;
             }
         }
 
-
         public bool Intersects(Tank other, Vector2 newPos)
         {
-            int scaledWidth = (int)(64f / texture.Width * texture.Width)-25;
-            int scaledHeight = (int)(64f / texture.Height * texture.Height)-25;
+            int scaledWidth = (int)(64f / texture.Width * texture.Width) - 25;
+            int scaledHeight = (int)(64f / texture.Height * texture.Height) - 25;
 
             Rectangle rectA = new Rectangle((int)(newPos.X - origin.X), (int)(newPos.Y - origin.Y), scaledWidth, scaledHeight);
             Rectangle rectB = new Rectangle((int)(other.position.X - other.origin.X), (int)(other.position.Y - other.origin.Y), scaledWidth, scaledHeight);
@@ -119,7 +147,7 @@ namespace My_Game
             int top = Math.Max((int)newPosA.Y, (int)b.position.Y);
             int bottom = Math.Min((int)newPosA.Y + a.texture.Height, (int)b.position.Y + b.texture.Height);
             int left = Math.Max((int)newPosA.X, (int)b.position.X);
-            int  right = Math.Min((int)newPosA.X + a.texture.Width, (int)b.position.X + b.texture.Width);
+            int right = Math.Min((int)newPosA.X + a.texture.Width, (int)b.position.X + b.texture.Width);
 
             for (int y = top; y < bottom; y++)
             {
@@ -164,13 +192,12 @@ namespace My_Game
         private Color GetPixelAt(int x, int y)
         {
             if (x < 0 || x >= texture.Width || y < 0 || y >= texture.Height)
-                return Color.Transparent; // Якщо координати виходять за межі
+                return Color.Transparent;
 
             int index = y * texture.Width + x;
             return textureData[index];
         }
 
-        
         public void Draw(SpriteBatch spriteBatch)
         {
             Color color = Color.White;
@@ -186,8 +213,10 @@ namespace My_Game
                 sin * point.X + cos * point.Y
             );
         }
-        
-        
 
+        public void SetDestroyed()
+        {
+            texture = grey;
+        }
     }
 }

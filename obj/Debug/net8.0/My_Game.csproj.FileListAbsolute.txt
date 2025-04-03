@@ -36,3 +36,10 @@ C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\blue_bomb.xn
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\green_bomb.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\red_bomb.xnb
 C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\yellow_bomb.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\gray_tank.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\green.xnb
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\blue_bomb.png
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\gray_tank.png
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\green.png
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\red_bomb.png
+C:\Users\ADMIN\Desktop\Course_Work\My_Game\bin\Debug\net8.0\Content\yellow_bomb.png

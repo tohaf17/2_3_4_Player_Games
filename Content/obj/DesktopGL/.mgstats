@@ -1,5 +1,2 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/blue_bomb.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/blue_bomb.xnb","TextureProcessor","Texture2DContent",3660,409685,0,125272
-"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/green.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/green_bomb.xnb","TextureProcessor","Texture2DContent",3651,409685,0,0169357
-"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/red_bomb.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/red_bomb.xnb","TextureProcessor","Texture2DContent",3654,409685,0,0138395
-"C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/yellow_bomb.png","C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/yellow_bomb.xnb","TextureProcessor","Texture2DContent",3657,409685,0,0310345
+"C:/Users/ADMIN/DEsktop/course_work/My_Game/Content/green.png","C:/Users/ADMIN/DEsktop/course_work/My_Game/Content/bin/DesktopGL/green.xnb","TextureProcessor","Texture2DContent",3651,409685,0,2876812
