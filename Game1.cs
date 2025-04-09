@@ -14,6 +14,9 @@ namespace My_Game
 
     public class Game1 : Game
     {
+        public static Texture2D DarkBlockTexture;
+
+        
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
@@ -68,6 +71,9 @@ namespace My_Game
             // Підписуємося на події зміни стану
             _buttonManagerMainMenu.PlayersSelected += OnPlayersSelected;
             _buttonManagerChooseGame.GameSelected += OnGameSelected;
+            
+            DarkBlockTexture = Content.Load<Texture2D>("dark_block");
+
         }
 
         private void OnPlayersSelected(int players)
