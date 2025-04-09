@@ -2,12 +2,10 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework.Content;
 
 namespace My_Game
 {
-    public class Tank : Player, IMovement
+    public class Tank : Player
     {
         private Texture2D texture;
         public Texture2D Texture { get; set; }
@@ -17,78 +15,66 @@ namespace My_Game
         private float rotationSpeed = 3.5f;
         private float rotation = 0f;
         private Vector2 origin;
-        private Vector2 barrelTip = new Vector2(0, -10);
         private Keys key;
         private Color[] textureData;
 
-        private Dictionary<Tank, Bomb> dict;
-
-        private Texture2D yellow;
-        private Texture2D green;
-        private Texture2D blue;
-        private Texture2D red;
         private Texture2D grey;
-
-        private readonly int minX = 596;
-        private readonly int maxX = 1428;
-        private readonly int minY = 346;
-        private readonly int maxY = 730;
-
-        // Додаємо оголошення полів
-        private KeyboardState keyboardState;
-        private Keys fireKey;
         private Texture2D bombTexture;
         public Bomb bomb { get; set; }
-        
+
+        private float bombCooldown = 0f;
+        private const float BombDelay = 3f;
 
         public Tank(Texture2D texture, Vector2 startPosition, Keys key, Texture2D greyTexture, Texture2D bombTexture)
         {
-            if (texture == null)
-                throw new ArgumentNullException("texture є null!");
-            if (startPosition == null)
-                throw new ArgumentNullException("startposition є null!");
-            if (key == null)
-                throw new ArgumentNullException("key є null!");
-            if (greyTexture == null)
-                throw new ArgumentNullException("graytexture є null!");
-            if (bombTexture == null)
-                throw new ArgumentNullException("bombtexture є null!");
-
-            this.texture = texture;
-            this.grey = greyTexture;
-            this.bombTexture = bombTexture;
-            position = startPosition;
-            origin = new Vector2(texture.Width / 2, texture.Height / 2);
+            this.texture = texture ?? throw new ArgumentNullException(nameof(texture));
+            this.grey = greyTexture ?? throw new ArgumentNullException(nameof(greyTexture));
+            this.bombTexture = bombTexture ?? throw new ArgumentNullException(nameof(bombTexture));
             this.key = key;
+
+            position = startPosition;
+            origin = new Vector2(texture.Width / 2f, texture.Height / 2f);
+
             textureData = new Color[texture.Width * texture.Height];
             texture.GetData(textureData);
-
-            fireKey = Keys.Space;
         }
 
+        public void Update(Tank[] tanks, int[,] map, int tileSize, Game1 game, GameTime gameTime)
+        {
+            bombCooldown = Math.Max(0f, bombCooldown - (float)gameTime.ElapsedGameTime.TotalSeconds);
 
-        public void Movement(Player[] tanks, int[,] map, int tileSize, Game1 game)
+            bomb?.Update(map, tileSize, tanks);
+            Movement(tanks, map, tileSize);
+        }
+
+        public void Movement(Tank[] tanks, int[,] map, int tileSize)
         {
             KeyboardState state = Keyboard.GetState();
-            Vector2 new_position = position;
-
-            dict = new Dictionary<Tank, Bomb>();
 
             if (state.IsKeyDown(key))
             {
                 Vector2 direction = Move(new Vector2(0, -1), rotation);
-                new_position = position - direction * speed;
+                Vector2 newPosition = position - direction * speed;
 
                 foreach (var otherTank in tanks)
                 {
-                    if (otherTank != null && otherTank != this && Intersects((Tank)otherTank, new_position))
-                    {
+                    if (otherTank != null && otherTank != this && Intersects(otherTank, newPosition))
                         return;
-                    }
                 }
 
-                position = new_position;
-                CollidesWithMap(map, tileSize);
+                position = newPosition;
+                CollidesWithMap();
+
+                if ((bomb == null || !bomb.IsActive) && bombCooldown <= 0f)
+                {
+                    Vector2 shootDirection = -Move(new Vector2(0, -1), rotation);
+                    float spawnOffset = (texture.Height / 2f) * (64f / texture.Width);
+                    Vector2 bombSpawn = position + shootDirection * spawnOffset;
+
+                    bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation);
+                    bombCooldown = BombDelay;
+                }
+
             }
             else
             {
@@ -96,45 +82,17 @@ namespace My_Game
             }
         }
 
-        public void Update(Tank[] tanks, int[,] map, int tileSize, Game1 game, GameTime gameTime)
+        private void CollidesWithMap()
         {
-            keyboardState = Keyboard.GetState(); // Отримуємо стан клавіатури
-
-            if (keyboardState.IsKeyDown(fireKey) && bomb == null)
-            {
-                bomb = new Bomb(bombTexture, position, rotation, game.Content.Load<Texture2D>("dark_block"));
-            }
-            bomb?.Update(map, tileSize, tanks, gameTime);
-            Movement(tanks, map, tileSize, game);
-        }
-
-        private void CollidesWithMap(int[,] map, int tileSize)
-        {
-            if (position.X < minX)
-            {
-                position.X = minX;
-            }
-            if (position.X > maxX)
-            {
-                position.X = maxX;
-            }
-            if (position.Y < minY)
-            {
-                position.Y = minY;
-            }
-            if (position.Y > maxY)
-            {
-                position.Y = maxY;
-            }
+            position.X = MathHelper.Clamp(position.X, 596, 1428);
+            position.Y = MathHelper.Clamp(position.Y, 346, 730);
         }
 
         public bool Intersects(Tank other, Vector2 newPos)
         {
-            int scaledWidth = (int)(64f / texture.Width * texture.Width) - 25;
-            int scaledHeight = (int)(64f / texture.Height * texture.Height) - 25;
-
-            Rectangle rectA = new Rectangle((int)(newPos.X - origin.X), (int)(newPos.Y - origin.Y), scaledWidth, scaledHeight);
-            Rectangle rectB = new Rectangle((int)(other.position.X - other.origin.X), (int)(other.position.Y - other.origin.Y), scaledWidth, scaledHeight);
+            int scaledSize = 64;
+            Rectangle rectA = new Rectangle((int)(newPos.X - origin.X), (int)(newPos.Y - origin.Y), scaledSize, scaledSize);
+            Rectangle rectB = new Rectangle((int)(other.position.X - other.origin.X), (int)(other.position.Y - other.origin.Y), scaledSize, scaledSize);
 
             if (!rectA.Intersects(rectB))
                 return false;
@@ -163,18 +121,10 @@ namespace My_Game
                     Color colorB = b.GetPixelAt((int)localB.X, (int)localB.Y);
 
                     if (colorA.A != 0 && colorB.A != 0)
-                    {
                         return true;
-                    }
                 }
             }
             return false;
-        }
-
-        private bool IsInsideTexture(Tank tank, Vector2 localPos)
-        {
-            return localPos.X >= 0 && localPos.X < tank.texture.Width &&
-                   localPos.Y >= 0 && localPos.Y < tank.texture.Height;
         }
 
         private Vector2 GlobalToLocal(Tank tank, Vector2 globalPos, Vector2 tankPos)
@@ -189,6 +139,12 @@ namespace My_Game
             );
         }
 
+        private bool IsInsideTexture(Tank tank, Vector2 localPos)
+        {
+            return localPos.X >= 0 && localPos.X < tank.texture.Width &&
+                   localPos.Y >= 0 && localPos.Y < tank.texture.Height;
+        }
+
         private Color GetPixelAt(int x, int y)
         {
             if (x < 0 || x >= texture.Width || y < 0 || y >= texture.Height)
@@ -200,14 +156,14 @@ namespace My_Game
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            Color color = Color.White;
-            spriteBatch.Draw(texture, position, null, color, rotation, origin, 64f / texture.Width, SpriteEffects.None, 0f);
+            spriteBatch.Draw(texture, position, null, Color.White, rotation, origin, 64f / texture.Width, SpriteEffects.None, 0f);
+            bomb?.Draw(spriteBatch);
         }
 
         private Vector2 Move(Vector2 point, float angle)
         {
-            float cos = (float)System.Math.Cos(angle);
-            float sin = (float)System.Math.Sin(angle);
+            float cos = (float)Math.Cos(angle);
+            float sin = (float)Math.Sin(angle);
             return new Vector2(
                 cos * point.X - sin * point.Y,
                 sin * point.X + cos * point.Y

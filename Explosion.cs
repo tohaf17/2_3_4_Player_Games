@@ -8,7 +8,7 @@ namespace My_Game
         private Texture2D texture;
         private Vector2 position;
         private float timer;
-        private float duration = 0.5f; // Тривалість вибуху в секундах
+        private float duration = 0.5f; 
         private bool isActive = true;
 
         public Explosion(Texture2D texture, Vector2 position)

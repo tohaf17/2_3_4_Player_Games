@@ -1,8 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
 
 namespace My_Game
 {
@@ -11,95 +9,72 @@ namespace My_Game
         private Texture2D texture;
         private Vector2 position;
         private Vector2 direction;
+        private float rotation;
         private float speed = 5f;
         private bool isActive = true;
-        private Texture2D explosionTexture;
-        private List<Explosion> explosions = new List<Explosion>();
 
-        public Bomb(Texture2D texture, Vector2 startPosition, float rotation, Texture2D explosionTexture) // Додаємо виклик конструктора базового класу
+        public Bomb(Texture2D texture, Vector2 startPosition, Vector2 direction, float rotation)
         {
             this.texture = texture;
             this.position = startPosition;
-            this.direction = new Vector2((float)Math.Cos(rotation), (float)Math.Sin(rotation));
-            this.explosionTexture = explosionTexture;
+            this.direction = direction; // тепер напрямок передається прямо
+            this.rotation = rotation;
         }
 
-        public void Update(int[,] map, int tileSize, Tank[] tanks, GameTime gameTime)
+
+        private Vector2 mapOffset = new Vector2(500, 250); // зміщення з Draw
+
+        public void Update(int[,] map, int tileSize, Tank[] tanks)
         {
-            if (!isActive)
+            if (!isActive) return;
+
+            Vector2 newPosition = position + direction * speed;
+
+            // Враховуємо зміщення на екрані
+            Vector2 checkPos = newPosition - mapOffset;
+
+            if (!IsInsideMap(checkPos, map, tileSize) || CollidesWithMap(map, tileSize, checkPos))
             {
-                UpdateExplosions(gameTime);
+                isActive = false;
                 return;
             }
 
-            position += direction * speed;
-
-            if (CollidesWithMap(map, tileSize))
-            {
-                CreateExplosion();
-                isActive = false;
-            }
+            position = newPosition;
 
             foreach (var tank in tanks)
             {
-                if (Intersects(tank))
+                if (tank != null && Intersects(tank))
                 {
                     tank.SetDestroyed();
-                    CreateExplosion();
                     isActive = false;
                     break;
                 }
             }
-            UpdateExplosions(gameTime);
         }
 
-        private void CreateExplosion()
+        private bool IsInsideMap(Vector2 pos, int[,] map, int tileSize)
         {
-            explosions.Add(new Explosion(explosionTexture, position));
+            int x = (int)pos.X / tileSize;
+            int y = (int)pos.Y / tileSize;
+            return x >= 0 && y >= 0 && y < map.GetLength(0) && x < map.GetLength(1);
         }
 
-        private void UpdateExplosions(GameTime gameTime)
+        private bool CollidesWithMap(int[,] map, int tileSize, Vector2 checkPos)
         {
-            for (int i = explosions.Count - 1; i >= 0; i--)
-            {
-                explosions[i].Update(gameTime);
-                if (!explosions[i].IsActive)
-                {
-                    explosions.RemoveAt(i);
-                }
-            }
+            int tileX = (int)checkPos.X / tileSize;
+            int tileY = (int)checkPos.Y / tileSize;
+            return map[tileY, tileX] != 0;
         }
 
-        private bool CollidesWithMap(int[,] map, int tileSize)
+
+        private bool Intersects(Tank tank)
         {
-            int tileX = (int)position.X / tileSize;
-            int tileY = (int)position.Y / tileSize;
-
-            // Check if tileX and tileY are within the map bounds
-            if (tileX >= 0 && tileX < map.GetLength(1) && tileY >= 0 && tileY < map.GetLength(0))
+            if (tank != null && tank.Texture != null)
             {
-                return map[tileY, tileX] != 0;
-            }
-            else
-            {
-                // Handle out-of-bounds cases. You can either:
-                // 1. Return true (treat as collision)
-                // 2. Return false (treat as no collision)
-                // 3. Throw an exception (for debugging)
-                return true; // Or false, depending on your game's logic
-            }
-        }
-
-        private bool Intersects(Tank? tank)
-        {
-            if (tank != null && tank.Texture != null) // Check if tank.Texture is not null
-            {
-                Rectangle bombRect = new Rectangle((int)position.X, (int)position.Y, texture.Width, texture.Height);
-                Rectangle tankRect = new Rectangle((int)tank.Position.X, (int)tank.Position.Y, tank.Texture.Width, tank.Texture.Height);
-
+                Rectangle bombRect = new Rectangle((int)position.X, (int)position.Y, 16, 16);
+                Rectangle tankRect = new Rectangle((int)tank.Position.X, (int)tank.Position.Y, 64, 64);
                 return bombRect.Intersects(tankRect);
             }
-
             return false;
         }
 
@@ -107,14 +82,22 @@ namespace My_Game
         {
             if (isActive)
             {
-                spriteBatch.Draw(texture, position, Color.White);
-            }
-            foreach (var explosion in explosions)
-            {
-                explosion.Draw(spriteBatch);
+                spriteBatch.Draw(
+                    texture,
+                    position,
+                    null,
+                    Color.White,
+                    rotation + MathF.PI,
+                    new Vector2(texture.Width / 2f, texture.Height / 2f),
+                    0.25f,
+                    SpriteEffects.None,
+                    0f
+                );
+
             }
         }
 
-        public bool IsActive => isActive || explosions.Count > 0;
+        public bool IsActive => isActive;
+        public Vector2 Position => position;
     }
 }
