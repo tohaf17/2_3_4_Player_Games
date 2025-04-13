@@ -11,8 +11,28 @@
         <ApplicationIcon>Icon.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
+<<<<<<< HEAD
         <None Remove="Icon.ico"/>
         <None Remove="Icon.bmp"/>
+=======
+        <None Remove="Icon.ico" />
+        <None Remove="Icon.bmp" />
+        <None Update="Content\blue_bomb.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Content\gray_tank.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Content\green.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Content\red_bomb.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Content\yellow_bomb.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+>>>>>>> c133d8d (Bombs.Update2)
     </ItemGroup>
     <ItemGroup>
         <EmbeddedResource Include="Icon.ico">
@@ -23,14 +43,15 @@
         </EmbeddedResource>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105"/>
-        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105"/>
+        <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105" />
+        <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.2.1105" />
+        <PackageReference Include="ScottPlot.WPF" Version="5.0.55" />
     </ItemGroup>
     <ItemGroup>
       <None Remove="Content\arial.ttf" />
     </ItemGroup>
     <Target Name="RestoreDotnetTools" BeforeTargets="Restore">
-        <Message Text="Restoring dotnet tools" Importance="High"/>
-        <Exec Command="dotnet tool restore"/>
+        <Message Text="Restoring dotnet tools" Importance="High" />
+        <Exec Command="dotnet tool restore" />
     </Target>
 </Project>

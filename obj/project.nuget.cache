@@ -1,15 +1,64 @@
 {
   "version": 2,
-  "dgSpecHash": "urWcflg1YWM=",
+  "dgSpecHash": "XXGqvU4rf1I=",
   "success": true,
   "projectFilePath": "C:\\Users\\ADMIN\\Desktop\\Course_Work\\My_Game\\My_Game.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\ADMIN\\.nuget\\packages\\harfbuzzsharp\\7.3.0.3\\harfbuzzsharp.7.3.0.3.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\harfbuzzsharp.nativeassets.linux\\7.3.0.3\\harfbuzzsharp.nativeassets.linux.7.3.0.3.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\harfbuzzsharp.nativeassets.macos\\7.3.0.3\\harfbuzzsharp.nativeassets.macos.7.3.0.3.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\harfbuzzsharp.nativeassets.win32\\7.3.0.3\\harfbuzzsharp.nativeassets.win32.7.3.0.3.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\microsoft.netcore.platforms\\3.1.9\\microsoft.netcore.platforms.3.1.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\microsoft.win32.systemevents\\4.7.0\\microsoft.win32.systemevents.4.7.0.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\monogame.content.builder.task\\3.8.2.1105\\monogame.content.builder.task.3.8.2.1105.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.2.1105\\monogame.framework.desktopgl.3.8.2.1105.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\monogame.library.sdl\\2.26.5.5\\monogame.library.sdl.2.26.5.5.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\nvorbis\\0.10.4\\nvorbis.0.10.4.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\opentk\\3.3.1\\opentk.3.3.1.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\opentk.glwpfcontrol\\3.3.0\\opentk.glwpfcontrol.3.3.0.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\scottplot\\5.0.55\\scottplot.5.0.55.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\scottplot.wpf\\5.0.55\\scottplot.wpf.5.0.55.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp\\2.88.9\\skiasharp.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp.harfbuzz\\2.88.9\\skiasharp.harfbuzz.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp.nativeassets.linux.nodependencies\\2.88.9\\skiasharp.nativeassets.linux.nodependencies.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp.nativeassets.macos\\2.88.9\\skiasharp.nativeassets.macos.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp.nativeassets.win32\\2.88.9\\skiasharp.nativeassets.win32.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp.views.desktop.common\\2.88.9\\skiasharp.views.desktop.common.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\skiasharp.views.wpf\\2.88.9\\skiasharp.views.wpf.2.88.9.nupkg.sha512",
+    "C:\\Users\\ADMIN\\.nuget\\packages\\system.drawing.common\\4.7.3\\system.drawing.common.4.7.3.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\system.memory\\4.5.3\\system.memory.4.5.3.nupkg.sha512",
     "C:\\Users\\ADMIN\\.nuget\\packages\\system.valuetuple\\4.5.0\\system.valuetuple.4.5.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'OpenTK 3.3.1' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "OpenTK",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'OpenTK.GLWpfControl 3.3.0' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "OpenTK.GLWpfControl",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1701",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'ScottPlot.WPF 5.0.55' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net8.0'. This package may not be fully compatible with your project.",
+      "libraryId": "ScottPlot.WPF",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

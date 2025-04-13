@@ -52,6 +52,10 @@
             "MonoGame.Framework.DesktopGL": {
               "target": "Package",
               "version": "[3.8.2.1105, )"
+            },
+            "ScottPlot.WPF": {
+              "target": "Package",
+              "version": "[5.0.55, )"
             }
           },
           "imports": [

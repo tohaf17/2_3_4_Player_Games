@@ -11,14 +11,18 @@ namespace My_Game
     public class Tank : Player
 >>>>>>> 45861ca (Bomb -update 1)
     {
+        private Texture2D originalTexture;
         private Texture2D texture;
-        public Texture2D Texture { get; set; }
+        private Texture2D grey;
+        private Texture2D bombTexture;
+
+        private Vector2 startPosition;
         private Vector2 position;
-        public Vector2 Position { get; set; }
         private float speed = 3.5f;
         private float rotationSpeed = 3.5f;
         private float rotation = 0f; 
         private Vector2 origin;
+
         private Keys key;
         private Color[] textureData;
 <<<<<<< HEAD
@@ -42,22 +46,32 @@ namespace My_Game
             origin = new Vector2(texture.Width / 2, texture.Height / 2);
 =======
 
-        private Texture2D grey;
-        private Texture2D bombTexture;
-        public Bomb bomb { get; set; }
-
         private float bombCooldown = 0f;
         private const float BombDelay = 3f;
 
+        public Bomb bomb { get; private set; }
+
+        private bool isDestroyed = false;
+
+        public string color;
+
         public Tank(Texture2D texture, Vector2 startPosition, Keys key, Texture2D greyTexture, Texture2D bombTexture)
         {
+<<<<<<< HEAD
             this.texture = texture ?? throw new ArgumentNullException(nameof(texture));
             this.grey = greyTexture ?? throw new ArgumentNullException(nameof(greyTexture));
             this.bombTexture = bombTexture ?? throw new ArgumentNullException(nameof(bombTexture));
 >>>>>>> 45861ca (Bomb -update 1)
+=======
+            this.originalTexture = texture;
+            this.texture = texture;
+            this.grey = greyTexture;
+            this.bombTexture = bombTexture;
+>>>>>>> c133d8d (Bombs.Update2)
             this.key = key;
+            this.startPosition = startPosition;
+            this.position = startPosition;
 
-            position = startPosition;
             origin = new Vector2(texture.Width / 2f, texture.Height / 2f);
 
             textureData = new Color[texture.Width * texture.Height];
@@ -75,13 +89,14 @@ namespace My_Game
 
         public void Update(Tank[] tanks, int[,] map, int tileSize, Game1 game, GameTime gameTime)
         {
-            bombCooldown = Math.Max(0f, bombCooldown - (float)gameTime.ElapsedGameTime.TotalSeconds);
+            if (isDestroyed) return;
 
+            bombCooldown = Math.Max(0f, bombCooldown - (float)gameTime.ElapsedGameTime.TotalSeconds);
             bomb?.Update(map, tileSize, tanks);
             Movement(tanks, map, tileSize);
         }
 
-        public void Movement(Tank[] tanks, int[,] map, int tileSize)
+        private void Movement(Tank[] tanks, int[,] map, int tileSize)
         {
             KeyboardState state = Keyboard.GetState();
 >>>>>>> 45861ca (Bomb -update 1)
@@ -109,7 +124,7 @@ namespace My_Game
                 }
 
                 position = newPosition;
-                CollidesWithMap();
+                ClampToMap();
 
                 if ((bomb == null || !bomb.IsActive) && bombCooldown <= 0f)
                 {
@@ -117,11 +132,14 @@ namespace My_Game
                     float spawnOffset = (texture.Height / 2f) * (64f / texture.Width);
                     Vector2 bombSpawn = position + shootDirection * spawnOffset;
 
-                    bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation);
+                    bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation, this);
                     bombCooldown = BombDelay;
                 }
+<<<<<<< HEAD
 >>>>>>> 45861ca (Bomb -update 1)
 
+=======
+>>>>>>> c133d8d (Bombs.Update2)
             }
             else
             {
@@ -155,7 +173,7 @@ namespace My_Game
             }
 =======
 
-        private void CollidesWithMap()
+        private void ClampToMap()
         {
             position.X = MathHelper.Clamp(position.X, 596, 1428);
             position.Y = MathHelper.Clamp(position.Y, 346, 730);
@@ -165,6 +183,7 @@ namespace My_Game
 
         public bool Intersects(Tank other, Vector2 newPos)
         {
+<<<<<<< HEAD
 <<<<<<< HEAD
             int scaledWidth = (int)(64f / texture.Width * texture.Width)-25;
             int scaledHeight = (int)(64f / texture.Height * texture.Height)-25;
@@ -242,6 +261,11 @@ namespace My_Game
         {
             spriteBatch.Draw(texture, position, null, Color.White, rotation, origin, 64f / texture.Width, SpriteEffects.None, 0f);
             bomb?.Draw(spriteBatch);
+=======
+            Rectangle rectA = new Rectangle((int)(newPos.X - origin.X), (int)(newPos.Y - origin.Y), 64, 64);
+            Rectangle rectB = new Rectangle((int)(other.Position.X - origin.X), (int)(other.Position.Y - origin.Y), 64, 64);
+            return rectA.Intersects(rectB);
+>>>>>>> c133d8d (Bombs.Update2)
         }
 
         private Vector2 Move(Vector2 point, float angle)
@@ -256,5 +280,33 @@ namespace My_Game
         
         
 
+<<<<<<< HEAD
+=======
+        public void SetDestroyed()
+        {
+            texture = grey;
+            isDestroyed = true;
+        }
+
+        public void Reset()
+        {
+            texture = originalTexture;
+            isDestroyed = false;
+            position = startPosition;
+            rotation = 0f;
+            bombCooldown = 0f;
+            bomb = null;
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(texture, position, null, Color.White, rotation, origin, 64f / texture.Width, SpriteEffects.None, 0f);
+            bomb?.Draw(spriteBatch);
+        }
+
+        public Vector2 Position => position;
+        public Texture2D Texture => texture;
+        public bool IsDestroyed => isDestroyed;
+>>>>>>> c133d8d (Bombs.Update2)
     }
 }
