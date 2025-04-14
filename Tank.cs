@@ -102,10 +102,23 @@ namespace My_Game
 >>>>>>> 45861ca (Bomb -update 1)
 
 
+            // Створення бомби — без змін
+            if ((bomb == null || !bomb.IsActive) && bombCooldown <= 0f && state.IsKeyDown(key))
+            {
+                Vector2 shootDirection = -Move(new Vector2(0, -1), rotation);
+                float spawnOffset = (texture.Height / 2f) * (64f / texture.Width);
+                Vector2 bombSpawn = position + shootDirection * spawnOffset;
+
+                bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation, this);
+                bombCooldown = BombDelay;
+            }
+
             if (state.IsKeyDown(key))
             {
                 Vector2 direction = Move(new Vector2(0, -1), rotation);
                 Vector2 newPosition = position - direction * speed;
+
+                bool isBlocked = false;
 
                 foreach (var otherTank in tanks)
                 {
@@ -120,26 +133,61 @@ namespace My_Game
                 CollidesWithMap(map, tileSize);
 =======
                     if (otherTank != null && otherTank != this && Intersects(otherTank, newPosition))
-                        return;
+                    {
+                        // 💥 Спроба штовхнути іншого
+                        Vector2 push = -direction * 2f; // на 2 пікселі назад
+                        Vector2 pushedPosition = otherTank.Position + push;
+
+                        // Перевірка, чи можна штовхнути інший танк
+                        bool canPush = true;
+                        foreach (var t in tanks)
+                        {
+                            if (t != null && t != this && t != otherTank && Intersects(t, pushedPosition))
+                            {
+                                canPush = false;
+                                break;
+                            }
+                        }
+
+                        if (canPush)
+                        {
+                            otherTank.ForceMove(push); // ⬅️ зміщення іншого
+                        }
+                        else
+                        {
+                            isBlocked = true; // 🤷‍♂️ не можемо штовхнути
+                        }
+                    }
                 }
 
-                position = newPosition;
-                ClampToMap();
-
-                if ((bomb == null || !bomb.IsActive) && bombCooldown <= 0f)
+                if (!isBlocked)
                 {
-                    Vector2 shootDirection = -Move(new Vector2(0, -1), rotation);
-                    float spawnOffset = (texture.Height / 2f) * (64f / texture.Width);
-                    Vector2 bombSpawn = position + shootDirection * spawnOffset;
+                    // ще раз перевіримо, що після штовхання перетину більше нема
+                    bool collisionAfterPush = false;
+                    foreach (var otherTank in tanks)
+                    {
+                        if (otherTank != null && otherTank != this && Intersects(otherTank, newPosition))
+                        {
+                            collisionAfterPush = true;
+                            break;
+                        }
+                    }
 
-                    bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation, this);
-                    bombCooldown = BombDelay;
+                    if (!collisionAfterPush)
+                    {
+                        position = newPosition;
+                        ClampToMap();
+                    }
                 }
+<<<<<<< HEAD:Tank_Movement.cs
 <<<<<<< HEAD
 >>>>>>> 45861ca (Bomb -update 1)
 
 =======
 >>>>>>> c133d8d (Bombs.Update2)
+=======
+
+>>>>>>> 6516c0a (Bombs.Update3):Tank.cs
             }
             else
             {
@@ -173,6 +221,13 @@ namespace My_Game
             }
 =======
 
+        public void ForceMove(Vector2 offset)
+        {
+            position += offset;
+            ClampToMap(); // Щоб не вилетів за карту
+        }
+
+
         private void ClampToMap()
         {
             position.X = MathHelper.Clamp(position.X, 596, 1428);
@@ -183,6 +238,7 @@ namespace My_Game
 
         public bool Intersects(Tank other, Vector2 newPos)
         {
+<<<<<<< HEAD:Tank_Movement.cs
 <<<<<<< HEAD
 <<<<<<< HEAD
             int scaledWidth = (int)(64f / texture.Width * texture.Width)-25;
@@ -264,9 +320,14 @@ namespace My_Game
 =======
             Rectangle rectA = new Rectangle((int)(newPos.X - origin.X), (int)(newPos.Y - origin.Y), 64, 64);
             Rectangle rectB = new Rectangle((int)(other.Position.X - origin.X), (int)(other.Position.Y - origin.Y), 64, 64);
+=======
+            Rectangle rectA = new Rectangle((int)(newPos.X - 24), (int)(newPos.Y - 24), 48, 48);
+            Rectangle rectB = new Rectangle((int)(other.Position.X - 24), (int)(other.Position.Y - 24), 48, 48);
+>>>>>>> 6516c0a (Bombs.Update3):Tank.cs
             return rectA.Intersects(rectB);
 >>>>>>> c133d8d (Bombs.Update2)
         }
+
 
         private Vector2 Move(Vector2 point, float angle)
         {

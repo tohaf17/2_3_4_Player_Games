@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SourceFile>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/red_bomb.png</SourceFile>
-  <SourceTime>2025-04-10T22:44:01.1118943+03:00</SourceTime>
+  <SourceTime>2025-04-14T21:37:42.0849721+03:00</SourceTime>
   <DestFile>C:/Users/ADMIN/Desktop/Course_Work/My_Game/Content/bin/DesktopGL/Content/red_bomb.xnb</DestFile>
-  <DestTime>2025-04-13T21:24:47.6104157+03:00</DestTime>
+  <DestTime>2025-04-14T21:43:08.4311539+03:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2024-08-16T20:05:56+03:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
