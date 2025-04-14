@@ -13,7 +13,11 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("My_Game")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
+<<<<<<< HEAD
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e7d731b034a72c22fe659fe28d6d3cc3c06afcbf")]
+=======
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c133d8d1ea0a69d88ecdc1e69464722490f323df")]
+>>>>>>> 6516c0a (Bombs.Update3)
 [assembly: System.Reflection.AssemblyProductAttribute("My_Game")]
 [assembly: System.Reflection.AssemblyTitleAttribute("My_Game")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
