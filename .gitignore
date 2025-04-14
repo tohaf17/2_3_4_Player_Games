@@ -1,0 +1,5 @@
+obj/
+bin/
+*.mgcontent
+*.cache
+*.pdb
