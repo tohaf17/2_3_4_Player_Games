@@ -1,252 +1,183 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
+﻿using SFML.Graphics;
+using SFML.System;
+using SFML.Window;
+using System.Collections.Generic;
 
-namespace My_Game
+namespace k
 {
-    public class Tank : Player
+    public class Tank : GameEntity, IControllable
     {
-        private Texture2D texture;
-        public Texture2D Texture { get; set; }
-        private Vector2 position;
-        public Vector2 Position { get; set; }
-        private float speed = 3.5f;
-        private float rotationSpeed = 3.5f;
-        private float rotation = 0f;
-        private Vector2 origin;
-        private Keys key;
-        private Color[] textureData;
-
-        private Texture2D grey;
-        private Texture2D bombTexture;
-        public Bomb bomb { get; set; }
-
-        private float bombCooldown = 0f;
+        private Sprite sprite;
+        private float rotationSpeed = 200f;
+        private float speed = 300f;
+        private Keyboard.Key fireKey;
+        private Texture destroyedTexture;
+        private Texture bombTexture;
+        private Bomb bomb;
+        private float cooldown = 0f;
         private const float BombDelay = 3f;
+        private PlayerData data = new();
 
-        public Tank(Texture2D texture, Vector2 startPosition, Keys key, Texture2D greyTexture, Texture2D bombTexture)
+        private Vector2f velocity = new Vector2f(0, 0);
+        private const float dAcc = 250f;
+        private const float damping = 0.80f;
+
+        private int[,] map;
+        private int tileSize;
+        private Vector2f offset; // ДОДАНО offset
+
+        public Tank(Texture texture, Vector2f position, Keyboard.Key key, Texture grey, Texture bombTex, int[,] map, int tileSize, Vector2f offset)
         {
-            this.texture = texture ?? throw new ArgumentNullException(nameof(texture));
-            this.grey = greyTexture ?? throw new ArgumentNullException(nameof(greyTexture));
-            this.bombTexture = bombTexture ?? throw new ArgumentNullException(nameof(bombTexture));
-            this.key = key;
-
-            position = startPosition;
-            origin = new Vector2(texture.Width / 2f, texture.Height / 2f);
-
-            textureData = new Color[texture.Width * texture.Height];
-            texture.GetData(textureData);
-        }
-
-        public void Update(Tank[] tanks, int[,] map, int tileSize, Game1 game, GameTime gameTime)
-        {
-            bombCooldown = Math.Max(0f, bombCooldown - (float)gameTime.ElapsedGameTime.TotalSeconds);
-
-            bomb?.Update(map, tileSize, tanks);
-            Movement(tanks, map, tileSize);
-        }
-
-        public void Movement(Tank[] tanks, int[,] map, int tileSize)
-        {
-            KeyboardState state = Keyboard.GetState();
-
-            // Створення бомби — без змін
-            if ((bomb == null || !bomb.IsActive) && bombCooldown <= 0f && state.IsKeyDown(key))
+            sprite = new Sprite(texture)
             {
-                Vector2 shootDirection = -Move(new Vector2(0, -1), rotation);
-                float spawnOffset = (texture.Height / 2f) * (64f / texture.Width);
-                Vector2 bombSpawn = position + shootDirection * spawnOffset;
+                Origin = new Vector2f(texture.Size.X / 2f, texture.Size.Y / 2f),
+                Position = position,
+                Scale = new Vector2f(64f / texture.Size.X, 64f / texture.Size.Y)
+            };
+            fireKey = key;
+            destroyedTexture = grey;
+            bombTexture = bombTex;
+            this.map = map;
+            this.tileSize = tileSize;
+            this.offset = offset; // зберігаємо offset
+        }
 
-                bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation, this);
-                bombCooldown = BombDelay;
+        public override void Update(Time deltaTime, List<GameEntity> entities, int[,] map)
+        {
+            float delta = deltaTime.AsSeconds();
+            bomb?.Update(deltaTime, entities, map);
+
+            if (cooldown > 0)
+                cooldown -= delta;
+
+            HandleInput(delta, entities);
+
+            var newPosition = sprite.Position - velocity * delta;
+
+            bool isBlocked = false;
+
+            if (!CanMoveTo(newPosition))
+                isBlocked = true;
+
+            if (!isBlocked)
+            {
+                foreach (var entity in entities)
+                {
+                    if (entity is Tank otherTank && otherTank != this && Intersects(otherTank, newPosition))
+                    {
+                        isBlocked = true;
+                        break;
+                    }
+                }
             }
 
-            if (state.IsKeyDown(key))
+            if (!isBlocked)
             {
-                Vector2 direction = Move(new Vector2(0, -1), rotation);
-                Vector2 newPosition = position - direction * speed;
+                sprite.Position = newPosition;
+                ClampToMap();
+            }
 
-                bool isBlocked = false;
+            velocity *= damping;
+        }
 
-                foreach (var otherTank in tanks)
-                {
-                    if (otherTank != null && otherTank != this && Intersects(otherTank, newPosition))
-                    {
-                        // 💥 Спроба штовхнути іншого
-                        Vector2 push = -direction * 2f; // на 2 пікселі назад
-                        Vector2 pushedPosition = otherTank.Position + push;
+        public void HandleInput(float delta, List<GameEntity> entities)
+        {
+            if (!IsAlive) return;
 
-                        // Перевірка, чи можна штовхнути інший танк
-                        bool canPush = true;
-                        foreach (var t in tanks)
-                        {
-                            if (t != null && t != this && t != otherTank && Intersects(t, pushedPosition))
-                            {
-                                canPush = false;
-                                break;
-                            }
-                        }
+            if ((bomb == null || !bomb.IsActive) && cooldown <= 0f && Keyboard.IsKeyPressed(fireKey))
+            {
+                var angleRad = sprite.Rotation * (float)Math.PI / 180f;
+                var direction = new Vector2f(-(float)Math.Sin(angleRad), (float)Math.Cos(angleRad));
+                var spawn = sprite.Position + direction * 32f;
 
-                        if (canPush)
-                        {
-                            otherTank.ForceMove(push); // ⬅️ зміщення іншого
-                        }
-                        else
-                        {
-                            isBlocked = true; // 🤷‍♂️ не можемо штовхнути
-                        }
-                    }
-                }
+                bomb = new Bomb(bombTexture, spawn, direction, sprite.Rotation, this);
+                cooldown = BombDelay;
+            }
 
-<<<<<<< HEAD:Tank_Movement.cs
-                position = newPosition;
-                CollidesWithMap();
-
-                if ((bomb == null || !bomb.IsActive) && bombCooldown <= 0f)
-=======
-                if (!isBlocked)
->>>>>>> 6516c0a (Bombs.Update3):Tank.cs
-                {
-                    // ще раз перевіримо, що після штовхання перетину більше нема
-                    bool collisionAfterPush = false;
-                    foreach (var otherTank in tanks)
-                    {
-                        if (otherTank != null && otherTank != this && Intersects(otherTank, newPosition))
-                        {
-                            collisionAfterPush = true;
-                            break;
-                        }
-                    }
-
-<<<<<<< HEAD:Tank_Movement.cs
-                    bomb = new Bomb(bombTexture, bombSpawn, shootDirection, rotation);
-                    bombCooldown = BombDelay;
-=======
-                    if (!collisionAfterPush)
-                    {
-                        position = newPosition;
-                        ClampToMap();
-                    }
->>>>>>> 6516c0a (Bombs.Update3):Tank.cs
-                }
-
+            if (Keyboard.IsKeyPressed(fireKey))
+            {
+                var angleRad = (sprite.Rotation - 90f) * (float)Math.PI / 180f;
+                var direction = new Vector2f((float)Math.Cos(angleRad), (float)Math.Sin(angleRad));
+                velocity += direction * dAcc * delta;
             }
             else
             {
-                rotation += MathHelper.ToRadians(rotationSpeed);
+                sprite.Rotation += rotationSpeed * delta;
             }
         }
 
-<<<<<<< HEAD:Tank_Movement.cs
-        private void CollidesWithMap()
-=======
-        public void ForceMove(Vector2 offset)
+        public override void Draw(RenderWindow window)
         {
-            position += offset;
-            ClampToMap(); // Щоб не вилетів за карту
+            window.Draw(sprite);
+            bomb?.Draw(window);
         }
 
+        public Vector2f Position => sprite.Position;
+        public bool IsAlive => sprite.Texture != destroyedTexture;
+        public Bomb ActiveBomb => bomb;
+        public PlayerData Data => data;
+
+        public void TakeDamage()
+        {
+            sprite = new Sprite(destroyedTexture)
+            {
+                Origin = new Vector2f(destroyedTexture.Size.X / 2f, destroyedTexture.Size.Y / 2f),
+                Position = Position,
+                Scale = new Vector2f(64f / destroyedTexture.Size.X, 64f / destroyedTexture.Size.Y)
+            };
+        }
+
+        public void ForceMove(Vector2f moveOffset)
+        {
+            sprite.Position += moveOffset;
+            ClampToMap();
+        }
 
         private void ClampToMap()
->>>>>>> 6516c0a (Bombs.Update3):Tank.cs
         {
-            position.X = MathHelper.Clamp(position.X, 596, 1428);
-            position.Y = MathHelper.Clamp(position.Y, 346, 730);
-        }
+            float mapWidth = tileSize * map.GetLength(1);
+            float mapHeight = tileSize * map.GetLength(0);
 
-        public bool Intersects(Tank other, Vector2 newPos)
-        {
-<<<<<<< HEAD:Tank_Movement.cs
-            int scaledSize = 64;
-            Rectangle rectA = new Rectangle((int)(newPos.X - origin.X), (int)(newPos.Y - origin.Y), scaledSize, scaledSize);
-            Rectangle rectB = new Rectangle((int)(other.position.X - other.origin.X), (int)(other.position.Y - other.origin.Y), scaledSize, scaledSize);
-
-            if (!rectA.Intersects(rectB))
-                return false;
-
-            return PixelCollision(this, other, newPos);
-        }
-
-        private bool PixelCollision(Tank a, Tank b, Vector2 newPosA)
-        {
-            int top = Math.Max((int)newPosA.Y, (int)b.position.Y);
-            int bottom = Math.Min((int)newPosA.Y + a.texture.Height, (int)b.position.Y + b.texture.Height);
-            int left = Math.Max((int)newPosA.X, (int)b.position.X);
-            int right = Math.Min((int)newPosA.X + a.texture.Width, (int)b.position.X + b.texture.Width);
-
-            for (int y = top; y < bottom; y++)
-            {
-                for (int x = left; x < right; x++)
-                {
-                    Vector2 localA = GlobalToLocal(a, new Vector2(x, y), newPosA);
-                    Vector2 localB = GlobalToLocal(b, new Vector2(x, y), b.position);
-
-                    if (!IsInsideTexture(a, localA) || !IsInsideTexture(b, localB))
-                        continue;
-
-                    Color colorA = a.GetPixelAt((int)localA.X, (int)localA.Y);
-                    Color colorB = b.GetPixelAt((int)localB.X, (int)localB.Y);
-
-                    if (colorA.A != 0 && colorB.A != 0)
-                        return true;
-                }
-            }
-            return false;
-        }
-
-        private Vector2 GlobalToLocal(Tank tank, Vector2 globalPos, Vector2 tankPos)
-        {
-            Vector2 relative = globalPos - tankPos;
-            float cos = (float)Math.Cos(-tank.rotation);
-            float sin = (float)Math.Sin(-tank.rotation);
-
-            return new Vector2(
-                cos * relative.X - sin * relative.Y + tank.origin.X,
-                sin * relative.X + cos * relative.Y + tank.origin.Y
+            sprite.Position = new Vector2f(
+                Math.Clamp(sprite.Position.X, offset.X, offset.X + mapWidth),
+                Math.Clamp(sprite.Position.Y, offset.Y, offset.Y + mapHeight)
             );
         }
 
-        private bool IsInsideTexture(Tank tank, Vector2 localPos)
+        public bool Intersects(Tank other, Vector2f newPos)
         {
-            return localPos.X >= 0 && localPos.X < tank.texture.Width &&
-                   localPos.Y >= 0 && localPos.Y < tank.texture.Height;
-        }
-
-        private Color GetPixelAt(int x, int y)
-        {
-            if (x < 0 || x >= texture.Width || y < 0 || y >= texture.Height)
-                return Color.Transparent;
-
-            int index = y * texture.Width + x;
-            return textureData[index];
-        }
-
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            spriteBatch.Draw(texture, position, null, Color.White, rotation, origin, 64f / texture.Width, SpriteEffects.None, 0f);
-            bomb?.Draw(spriteBatch);
-=======
-            Rectangle rectA = new Rectangle((int)(newPos.X - 24), (int)(newPos.Y - 24), 48, 48);
-            Rectangle rectB = new Rectangle((int)(other.Position.X - 24), (int)(other.Position.Y - 24), 48, 48);
+            FloatRect rectA = new FloatRect(newPos.X - 24, newPos.Y - 24, 48, 48);
+            FloatRect rectB = new FloatRect(other.Position.X - 24, other.Position.Y - 24, 48, 48);
             return rectA.Intersects(rectB);
->>>>>>> 6516c0a (Bombs.Update3):Tank.cs
         }
 
-
-        private Vector2 Move(Vector2 point, float angle)
+        private bool CanMoveTo(Vector2f position)
         {
-            float cos = (float)Math.Cos(angle);
-            float sin = (float)Math.Sin(angle);
-            return new Vector2(
-                cos * point.X - sin * point.Y,
-                sin * point.X + cos * point.Y
-            );
-        }
+            Vector2f halfSize = new Vector2f(24, 24);
 
-        public void SetDestroyed()
-        {
-            texture = grey;
+            Vector2f[] corners = new Vector2f[]
+            {
+                position + new Vector2f(-halfSize.X, -halfSize.Y),
+                position + new Vector2f(halfSize.X, -halfSize.Y),
+                position + new Vector2f(-halfSize.X, halfSize.Y),
+                position + new Vector2f(halfSize.X, halfSize.Y)
+            };
+
+            foreach (var corner in corners)
+            {
+                Vector2f relativeCorner = corner - offset;
+
+                int tileX = (int)(relativeCorner.X / tileSize);
+                int tileY = (int)(relativeCorner.Y / tileSize);
+
+                if (tileX < 0 || tileY < 0 || tileY >= map.GetLength(0) || tileX >= map.GetLength(1))
+                    return false;
+
+                if (map[tileY, tileX] != 0)
+                    return false;
+            }
+
+            return true;
         }
     }
 }

@@ -1,103 +1,92 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
+﻿using SFML.Graphics;
+using SFML.System;
+using System.Collections.Generic;
 
-namespace My_Game
+namespace k
 {
-    public class Bomb
+    public class Bomb : GameEntity
     {
-        private Texture2D texture;
-        private Vector2 position;
-        private Vector2 direction;
-        private float rotation;
-        private float speed = 5f;
-        private bool isActive = true;
+        private Sprite sprite;
+        private Vector2f direction;
+        private float speed = 150f;
+        public bool IsActive { get; private set; } = true;
+        public Vector2f Position => sprite.Position;
+        private int tileSize;
 
-        public Bomb(Texture2D texture, Vector2 startPosition, Vector2 direction, float rotation)
+        private List<Tank> tanks = new List<Tank>();
+        private Tank owner;
+
+        public Bomb(Texture texture, Vector2f startPosition, Vector2f direction, float rotation,Tank owner)
         {
-            this.texture = texture;
-            this.position = startPosition;
-            this.direction = direction; // тепер напрямок передається прямо
-            this.rotation = rotation;
+            sprite = new Sprite(texture)
+            {
+                Origin = new Vector2f(texture.Size.X / 2f, texture.Size.Y / 2f),
+                Position = startPosition,
+                Rotation = rotation + 180f,
+                Scale = new Vector2f(0.25f, 0.25f)
+            };
+            this.direction = direction;
+            this.owner = owner;
+            tileSize = 64;
         }
 
-
-        private Vector2 mapOffset = new Vector2(500, 250); // зміщення з Draw
-
-        public void Update(int[,] map, int tileSize, Tank[] tanks)
+        public override void Update(Time delta, List<GameEntity> entities, int[,] map)
         {
-            if (!isActive) return;
+            if (!IsActive) return;
 
-            Vector2 newPosition = position + direction * speed;
+            tanks = entities.OfType<Tank>().ToList();
 
-            // Враховуємо зміщення на екрані
-            Vector2 checkPos = newPosition - mapOffset;
+            Vector2f newPosition = sprite.Position + direction * speed * delta.AsSeconds();
+            Vector2f checkPos = newPosition - new Vector2f(500, 250);
 
             if (!IsInsideMap(checkPos, map, tileSize) || CollidesWithMap(map, tileSize, checkPos))
             {
-                isActive = false;
+                IsActive = false;
                 return;
             }
 
-            position = newPosition;
+            sprite.Position = newPosition;
 
             foreach (var tank in tanks)
             {
-                if (tank != null && Intersects(tank))
+                if (tank != null && Intersects(tank) && tank != owner)
                 {
-                    tank.SetDestroyed();
-                    isActive = false;
+                    tank.TakeDamage();
+                    IsActive = false;
                     break;
                 }
             }
         }
 
-        private bool IsInsideMap(Vector2 pos, int[,] map, int tileSize)
+
+
+        public override void Draw(RenderWindow window)
         {
-            int x = (int)pos.X / tileSize;
-            int y = (int)pos.Y / tileSize;
+            if (IsActive)
+                window.Draw(sprite);
+        }
+
+        private bool IsInsideMap(Vector2f pos, int[,] map, int tileSize)
+        {
+            int x = (int)(pos.X / tileSize);
+            int y = (int)(pos.Y / tileSize);
             return x >= 0 && y >= 0 && y < map.GetLength(0) && x < map.GetLength(1);
         }
 
-        private bool CollidesWithMap(int[,] map, int tileSize, Vector2 checkPos)
+        private bool CollidesWithMap(int[,] map, int tileSize, Vector2f checkPos)
         {
-            int tileX = (int)checkPos.X / tileSize;
-            int tileY = (int)checkPos.Y / tileSize;
+            int tileX = (int)(checkPos.X / tileSize);
+            int tileY = (int)(checkPos.Y / tileSize);
             return map[tileY, tileX] != 0;
         }
 
-
         private bool Intersects(Tank tank)
         {
-            if (tank != null && tank.Texture != null)
-            {
-                Rectangle bombRect = new Rectangle((int)position.X, (int)position.Y, 16, 16);
-                Rectangle tankRect = new Rectangle((int)tank.Position.X, (int)tank.Position.Y, 64, 64);
+            
+                FloatRect bombRect = new FloatRect(Position.X, Position.Y, 16, 16);
+                FloatRect tankRect = new FloatRect(tank.Position.X - 32, tank.Position.Y - 32, 64, 64);
                 return bombRect.Intersects(tankRect);
-            }
-            return false;
+            
         }
-
-        public void Draw(SpriteBatch spriteBatch)
-        {
-            if (isActive)
-            {
-                spriteBatch.Draw(
-                    texture,
-                    position,
-                    null,
-                    Color.White,
-                    rotation + MathF.PI,
-                    new Vector2(texture.Width / 2f, texture.Height / 2f),
-                    0.25f,
-                    SpriteEffects.None,
-                    0f
-                );
-
-            }
-        }
-
-        public bool IsActive => isActive;
-        public Vector2 Position => position;
     }
 }
