@@ -71,7 +71,7 @@ class Program
                     break;
 
                 case GameState.Tank:
-                    tankGame.Update(deltaTime);
+                    tankGame.Update(deltaTime,window);
                     tankGame.Draw(window);
                     break;
             }

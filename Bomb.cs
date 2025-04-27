@@ -1,6 +1,9 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace k
 {
@@ -9,14 +12,22 @@ namespace k
         private Sprite sprite;
         private Vector2f direction;
         private float speed = 150f;
-        public bool IsActive { get; private set; } = true;
-        public Vector2f Position => sprite.Position;
         private int tileSize;
-
-        private List<Tank> tanks = new List<Tank>();
+        private Vector2f offset;
         private Tank owner;
 
-        public Bomb(Texture texture, Vector2f startPosition, Vector2f direction, float rotation,Tank owner)
+        public bool IsActive { get; private set; } = true;
+        public Vector2f Position => sprite.Position;
+
+        public Bomb(
+            Texture texture,
+            Vector2f startPosition,
+            Vector2f direction,
+            float rotation,
+            Tank owner,
+            Vector2f offset,
+            int tileSize = 64
+        )
         {
             sprite = new Sprite(texture)
             {
@@ -27,37 +38,55 @@ namespace k
             };
             this.direction = direction;
             this.owner = owner;
-            tileSize = 64;
+            this.offset = offset;
+            this.tileSize = tileSize;
         }
 
-        public override void Update(Time delta, List<GameEntity> entities, int[,] map)
+        public override void Update(
+   Time delta,
+   List<GameEntity> entities,
+   int[,] map,
+   Vector2f offset
+)
         {
             if (!IsActive) return;
 
-            tanks = entities.OfType<Tank>().ToList();
+            this.offset = offset;
+            float dt = delta.AsSeconds();
 
-            Vector2f newPosition = sprite.Position + direction * speed * delta.AsSeconds();
-            Vector2f checkPos = newPosition - new Vector2f(500, 250);
+            Vector2f newPos = sprite.Position + direction * speed * dt;
 
-            if (!IsInsideMap(checkPos, map, tileSize) || CollidesWithMap(map, tileSize, checkPos))
+            if (!CanMoveTo(newPos, map))
             {
                 IsActive = false;
                 return;
             }
 
-            sprite.Position = newPosition;
+            sprite.Position = newPos;
 
-            foreach (var tank in tanks)
+            var hit = entities
+                .OfType<Tank>()
+                .FirstOrDefault(t => t != owner && PixelPerfectCollision.Test(
+                    sprite, PixelPerfectCollision.CreateMask(sprite.Texture),
+                    t.Sprite, t.CollisionMask,
+                    alphaLimit: 10
+                ));
+
+            if (hit != null)
             {
-                if (tank != null && Intersects(tank) && tank != owner)
-                {
-                    tank.TakeDamage();
-                    IsActive = false;
-                    break;
-                }
+                hit.TakeDamage();
+                IsActive = false;
             }
         }
-
+        private bool IntersectsAABB(Tank t)
+        {
+            var bombRect = sprite.GetGlobalBounds();
+            var tankRect = new FloatRect(
+                t.Position.X - 32, t.Position.Y - 32,
+                64, 64
+            );
+            return bombRect.Intersects(tankRect);
+        }
 
 
         public override void Draw(RenderWindow window)
@@ -66,27 +95,55 @@ namespace k
                 window.Draw(sprite);
         }
 
-        private bool IsInsideMap(Vector2f pos, int[,] map, int tileSize)
+        // перевірка колізії з картою
+        private bool CanMoveTo(Vector2f newPos, int[,] map)
         {
-            int x = (int)(pos.X / tileSize);
-            int y = (int)(pos.Y / tileSize);
-            return x >= 0 && y >= 0 && y < map.GetLength(0) && x < map.GetLength(1);
+            var gb = sprite.GetGlobalBounds();
+            float w = gb.Width, h = gb.Height;
+
+            float left = newPos.X - w / 2f;
+            float top = newPos.Y - h / 2f;
+            float right = left + w;
+            float bottom = top + h;
+
+            int x0 = (int)((left - offset.X) / tileSize);
+            int x1 = (int)((right - offset.X) / tileSize);
+            int y0 = (int)((top - offset.Y) / tileSize);
+            int y1 = (int)((bottom - offset.Y) / tileSize);
+
+            for (int y = y0; y <= y1; y++)
+                for (int x = x0; x <= x1; x++)
+                    if (x < 0 || y < 0 || y >= map.GetLength(0) || x >= map.GetLength(1) || map[y, x] != 0)
+                        return false;
+            return true;
         }
 
-        private bool CollidesWithMap(int[,] map, int tileSize, Vector2f checkPos)
+        // перевірка колізії з танками (AABB + pixel-perfect)
+        private bool CollidesWithAnyTank(Vector2f testPos, List<GameEntity> entities)
         {
-            int tileX = (int)(checkPos.X / tileSize);
-            int tileY = (int)(checkPos.Y / tileSize);
-            return map[tileY, tileX] != 0;
+            var old = sprite.Position;
+            sprite.Position = testPos;
+
+            bool hit = entities.OfType<Tank>()
+                               .Where(t => t != owner)
+                               .Any(t => PixelPerfectCollision.Test(
+                                    sprite, PixelPerfectCollision.CreateMask(sprite.Texture),
+                                    t.Sprite, t.CollisionMask,
+                                    alphaLimit: 10));
+
+            sprite.Position = old;
+            return hit;
         }
 
-        private bool Intersects(Tank tank)
+        // простий AABB-перевірка центру бомби на влучання в танк
+        private bool Intersects(Tank t)
         {
-            
-                FloatRect bombRect = new FloatRect(Position.X, Position.Y, 16, 16);
-                FloatRect tankRect = new FloatRect(tank.Position.X - 32, tank.Position.Y - 32, 64, 64);
-                return bombRect.Intersects(tankRect);
-            
+            var bombRect = sprite.GetGlobalBounds();
+            var tankRect = new FloatRect(
+                t.Position.X - 32, t.Position.Y - 32,
+                64, 64
+            );
+            return bombRect.Intersects(tankRect);
         }
     }
 }

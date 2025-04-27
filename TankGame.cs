@@ -12,7 +12,7 @@ namespace k
         
         private int[,] map;
         private const int tileSize = 64;
-        private Vector2f offset = new Vector2f(500, 250);
+        private Vector2f offset ;
 
         private Texture darkBlock;
         private Texture grayBlock;
@@ -77,10 +77,19 @@ namespace k
         }
 
 
-        public void Update(Time deltaTime)
+        public void Update(Time deltaTime, RenderWindow window)
         {
-            foreach (var entity in entities)
-                entity.Update(deltaTime, entities,map);
+            // 1) Оновлюємо offset по центру:
+            float mapW = tileSize * map.GetLength(1);
+            float mapH = tileSize * map.GetLength(0);
+            offset = new Vector2f(
+                (window.Size.X - mapW) / 2f,
+                (window.Size.Y - mapH) / 2f
+            );
+
+            // 2) Для кожного танка викликаємо Update із актуальним offset
+            foreach (var t in entities.OfType<Tank>())
+                t.Update(deltaTime, entities, map, offset);
         }
 
         public void Draw(RenderWindow window)
