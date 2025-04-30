@@ -3,3 +3,4 @@ bin/
 *.mgcontent
 *.cache
 *.pdb
+.vs/

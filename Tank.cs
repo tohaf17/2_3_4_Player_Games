@@ -1,4 +1,5 @@
-﻿using SFML.Graphics;
+﻿using k.Interfaces;
+using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using System;
@@ -30,13 +31,15 @@ public class Tank : GameEntity, IControllable
     private const float dAcc = 250f;
     private const float damping = 0.80f;
     private const float rotationSpeed = 200f;
-    private const float pushStrength = 8f; // сила відштовхування при оберті
+    private const float pushStrength = 8f;
+
+    private readonly MapCollider collider;
 
     private Vector2f velocity = new Vector2f(0, 0);
     private PlayerData data = new();
 
     private int[,] map;
-    private int tileSize;
+    private const int tileSize =64;
     private Vector2f offset;
 
     public Tank(Texture texture,
@@ -44,16 +47,15 @@ public class Tank : GameEntity, IControllable
                  Keyboard.Key key,
                  Texture greyTexture,
                  Texture bombTex,
-                 int[,] map,
-                 int tileSize,
-                 Vector2f offset)
+                 MapCollider mapCollider
+        )
     {
-        this.map = map;
-        this.tileSize = tileSize;
-        this.offset = offset;
+        this.map = mapCollider.Map;
+        this.offset = mapCollider.Offset;
         this.fireKey = key;
         this.destroyedTexture = greyTexture;
         this.bombTexture = bombTex;
+        collider = mapCollider;
 
         SetupSprite(texture, position);
     }
@@ -71,86 +73,65 @@ public class Tank : GameEntity, IControllable
 
     public override void Update(Time deltaTime, List<GameEntity> entities, int[,] map, Vector2f offset)
     {
-        this.map = map;
-        this.offset = offset;
-        float dt = deltaTime.AsSeconds();
+        // синхронізуємо карту/offset у колайдері
+        collider.Offset = offset;
 
+        float delta = deltaTime.AsSeconds();
         bomb?.Update(deltaTime, entities, map, offset);
-        if (cooldown > 0f) cooldown -= dt;
+        if (cooldown > 0) cooldown -= delta;
+        HandleInput(delta, entities);
 
-        HandleInput(dt, entities);
-
-        var step = velocity * deltaTime.AsSeconds();
+        var step = velocity * delta;
         var pos = sprite.Position;
 
-        // 2) Спроба руху по X — перевіряємо і карту, і танки:
+        // рух по X
         var tryX = new Vector2f(pos.X - step.X, pos.Y);
-        bool freeX = CanMoveTo(tryX)
-                  && !CollidesWithTank(tryX, entities);
-        if (freeX)
-            pos.X = tryX.X;
-        else
-            velocity.X = 0f;
+        bool hitWallX = CollidesWithWall(tryX);
+        bool hitTankX = CollidesWithTank(tryX, entities);
+        if (!hitWallX && !hitTankX) pos.X = tryX.X; else velocity.X = 0;
 
-        // 3) Спроба руху по Y — теж саме:
+        // рух по Y
         var tryY = new Vector2f(pos.X, pos.Y - step.Y);
-        bool freeY = CanMoveTo(tryY)
-                  && !CollidesWithTank(tryY, entities);
-        if (freeY)
-            pos.Y = tryY.Y;
-        else
-            velocity.Y = 0f;
+        bool hitWallY = CollidesWithWall(tryY);
+        bool hitTankY = CollidesWithTank(tryY, entities);
+        if (!hitWallY && !hitTankY) pos.Y = tryY.Y; else velocity.Y = 0;
 
-        // 4) Фіксуємо нову позицію і ганяємо damping
         sprite.Position = pos;
         velocity *= damping;
     }
+
 
     public void HandleInput(float dt, List<GameEntity> entities)
     {
         if (!IsAlive) return;
 
-        // стріляємо
-        if ((bomb == null || !bomb.IsActive) && cooldown <= 0f && Keyboard.IsKeyPressed(fireKey))
-        {
-            float a = sprite.Rotation * (float)Math.PI / 180f;
-            var dir = new Vector2f(-(float)Math.Sin(a), (float)Math.Cos(a));
-            var spawn = sprite.Position + dir * 32f;
-            bomb = new Bomb(bombTexture, spawn, dir, sprite.Rotation, this, offset, tileSize);
-            cooldown = BombDelay;
-        }
-
-        // рух вперед
         if (Keyboard.IsKeyPressed(fireKey))
         {
+            // Рух вперед
             float a = (sprite.Rotation - 90f) * (float)Math.PI / 180f;
-            var dir = new Vector2f((float)Math.Cos(a), (float)Math.Sin(a));
+            Vector2f dir = new Vector2f((float)Math.Cos(a), (float)Math.Sin(a));
             velocity += dir * dAcc * dt;
+
+            // Стрільба
+            if ((bomb == null || !bomb.IsActive) && cooldown <= 0f)
+            {
+                float b = sprite.Rotation * (float)Math.PI / 180f;
+                Vector2f bdir = new Vector2f(-(float)Math.Sin(b), (float)Math.Cos(b));
+                Vector2f spawn = sprite.Position + bdir * 32f;
+                bomb = new Bomb(bombTexture, spawn, bdir, sprite.Rotation, this, offset, tileSize);
+                cooldown = BombDelay;
+            }
         }
         else
         {
-            float oldRot = sprite.Rotation;
+            // Чисте обертання без жодних перевірок
             sprite.Rotation += rotationSpeed * dt;
-
-            var hitTank = entities.OfType<Tank>()
-                                 .FirstOrDefault(t => t != this && Intersects(t, sprite.Position));
-            if (hitTank != null)
-            {
-                sprite.Rotation = oldRot;
-                // обчислюємо напрямок відштовхування
-                var diff = sprite.Position - hitTank.Position;
-                float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
-                if (len > 0f)
-                    sprite.Position += (diff / len) * pushStrength;
-            }
-
-            // також можна перевірити тайли:
-            if (!CanMoveTo(sprite.Position))
-            {
-                sprite.Rotation = oldRot;
-            }
         }
     }
+
+
+
+
 
     public override void Draw(RenderWindow window)
     {
@@ -167,31 +148,78 @@ public class Tank : GameEntity, IControllable
     {
         SetupSprite(destroyedTexture, sprite.Position);
     }
+    private bool CollidesWithWall(Vector2f testPos)
+        => collider.Collides(sprite, collisionMask, testPos);
 
-    private bool CanMoveTo(Vector2f newPos)
+    private bool CanMoveTo(Vector2f newPos, int[,] map)
     {
-        var gb = sprite.GetGlobalBounds();
-        float w = gb.Width * sprite.Scale.X;
-        float h = gb.Height * sprite.Scale.Y;
+        // Отримуємо AABB спрайта (вже зі Scale)
+        FloatRect gb = sprite.GetGlobalBounds();
+        float w = gb.Width;
+        float h = gb.Height;
 
+        // Межі у світових координатах
         float left = newPos.X - w / 2f;
         float top = newPos.Y - h / 2f;
         float right = left + w;
         float bottom = top + h;
 
+        // Переводимо у клітинки з урахуванням offset і tileSize
         int x0 = (int)((left - offset.X) / tileSize);
         int x1 = (int)((right - offset.X) / tileSize);
         int y0 = (int)((top - offset.Y) / tileSize);
         int y1 = (int)((bottom - offset.Y) / tileSize);
 
+        // Ітерація по всіх затронутіх клітинках
         for (int y = y0; y <= y1; y++)
+        {
             for (int x = x0; x <= x1; x++)
-                if (x < 0 || y < 0 || y >= map.GetLength(0) || x >= map.GetLength(1) || map[y, x] != 0)
+            {
+                // Якщо вийшли за межі масиву або тайл ≠ 0 — заборона руху
+                if (x < 0 || y < 0
+                    || y >= map.GetLength(0)
+                    || x >= map.GetLength(1)
+                    || map[y, x] != 0)
+                {
                     return false;
+                }
+            }
+        }
 
         return true;
     }
 
+    private Vector2f ComputeWallPush()
+    {
+        var gb = sprite.GetGlobalBounds();
+        var corners = new[]
+        {
+            new Vector2f(gb.Left,        gb.Top),
+            new Vector2f(gb.Left+gb.Width,  gb.Top),
+            new Vector2f(gb.Left,        gb.Top+gb.Height),
+            new Vector2f(gb.Left+gb.Width,  gb.Top+gb.Height),
+        };
+
+        Vector2f total = new Vector2f();
+        int count = 0;
+        for (int i = 0; i < corners.Length; i++)
+        {
+            var c = corners[i];
+            int tx = (int)((c.X - collider.Offset.X) / 64);
+            int ty = (int)((c.Y - collider.Offset.Y) / 64);
+            if (tx < 0 || ty < 0 || ty >= map.GetLength(0) || tx >= map.GetLength(1)) continue;
+            if (map[ty, tx] == 0) continue;
+            var center = new Vector2f(
+                tx *64 + collider.Offset.X + 64 / 2f,
+                ty * 64 + collider.Offset.Y + 64 / 2f
+            );
+            var d = sprite.Position - center;
+            float len = (float)Math.Sqrt(d.X * d.X + d.Y * d.Y);
+            if (len > 0) { total += d / len; count++; }
+        }
+        if (count > 0) total /= count;
+        return total;
+    }
     private bool CollidesWithTank(Vector2f pos, List<GameEntity> entities)
     {
         // тимчасово перемістимо спрайт
@@ -209,9 +237,7 @@ public class Tank : GameEntity, IControllable
         return hit;
     }
 
-    /// <summary>
-    /// Pixel-perfect колізія при заданій позиції.
-    /// </summary>
+
     public bool Intersects(Tank other, Vector2f pos)
     {
         var old = sprite.Position;
@@ -223,53 +249,29 @@ public class Tank : GameEntity, IControllable
         sprite.Position = old;
         return hit;
     }
-}
-public static class PixelPerfectCollision
+
+    private bool CanMoveTo(Vector2f newPos)
     {
-        // побудова маски один раз при ініціалізації
-        public static byte[] CreateMask(Texture tx)
-        {
-            var img = tx.CopyToImage();
-            int W = (int)tx.Size.X, H = (int)tx.Size.Y;
-            var mask = new byte[W * H];
-            for (int y = 0; y < H; y++)
-                for (int x = 0; x < W; x++)
-                    mask[x + y * W] = img.GetPixel((uint)x, (uint)y).A;
-            return mask;
-        }
+        FloatRect gb = sprite.GetGlobalBounds();
+        float w = gb.Width * sprite.Scale.X;
+        float h = gb.Height * sprite.Scale.Y;
 
-        public static bool Test(Sprite s1, byte[] mask1, Sprite s2, byte[] mask2, byte alphaLimit = 0)
-        {
-            var r1 = s1.GetGlobalBounds();
-            var r2 = s2.GetGlobalBounds();
+        float left = newPos.X - w / 2f;
+        float right = newPos.X + w / 2f;
+        float top = newPos.Y - h / 2f;
+        float bottom = newPos.Y + h / 2f;
 
-            if (!r1.Intersects(r2, out FloatRect inter))
-                return false;
-            for (int yi = 0; yi < inter.Height; yi++)
-            {
-                for (int xi = 0; xi < inter.Width; xi++)
-                {
-                    float wx = inter.Left + xi;
-                    float wy = inter.Top + yi;
+        int x0 = (int)((left - offset.X) / tileSize);
+        int x1 = (int)((right - offset.X) / tileSize);
+        int y0 = (int)((top - offset.Y) / tileSize);
+        int y1 = (int)((bottom - offset.Y) / tileSize);
 
-                    var p1 = (Vector2f)s1.InverseTransform.TransformPoint(wx, wy);
-                    var p2 = (Vector2f)s2.InverseTransform.TransformPoint(wx, wy);
+        for (int y = y0; y <= y1; y++)
+            for (int x = x0; x <= x1; x++)
+                if (x < 0 || y < 0 || y >= map.GetLength(0) || x >= map.GetLength(1) || map[y, x] != 0)
+                    return false;
 
-                    int ix1 = (int)p1.X, iy1 = (int)p1.Y;
-                    int ix2 = (int)p2.X, iy2 = (int)p2.Y;
-
-                    if (ix1 >= 0 && iy1 >= 0 && ix2 >= 0 && iy2 >= 0 &&
-                        ix1 < s1.TextureRect.Width && iy1 < s1.TextureRect.Height &&
-                        ix2 < s2.TextureRect.Width && iy2 < s2.TextureRect.Height &&
-                        mask1[ix1 + iy1 * s1.TextureRect.Width] > alphaLimit &&
-                        mask2[ix2 + iy2 * s2.TextureRect.Width] > alphaLimit)
-                        return true;
-                }
-            }
-
-            return false;
-        
-
+        return true;
     }
 
 }
