@@ -1,5 +1,4 @@
-obj/
 bin/
-*.mgcontent
-*.cache
-*.pdb
+obj/
+
+.vs/
