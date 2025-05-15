@@ -16,75 +16,76 @@ class Program
         Tank
     }
 
+    public static int[,] Map1 =
+    {
+        { 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,4, 4, 1 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3 },
+        { 1, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 1 }
+
+    };
+    public static readonly int[,] Map2 = Map1; // тимчасово дублюємо
+    public static readonly int[,] Map3 = Map1; // можна задати іншу
+
     static RenderWindow window;
     static GameState currentState = GameState.MainMenu;
-    static TankGame tankGame;
-    static Clock clock;
-    static Time deltaTime;
+    static Font font;
     static ButtonManagerMainMenu mainMenu;
     static ButtonManagerChooseGame chooseGameMenu;
-
-    static Font font;
-    static Texture tankTexture;
-    static Texture chickenTexture;
-
-    static string pathContent = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\Content"));
-
+    static Clock clock;
 
     static void Main(string[] args)
     {
-        VideoMode desktopMode = VideoMode.DesktopMode;
-        window = new RenderWindow(desktopMode, "SFML Game", Styles.Titlebar | Styles.Close);
-
-
-
+        window = new RenderWindow(VideoMode.DesktopMode, "SFML Game", Styles.Titlebar | Styles.Close);
         window.SetFramerateLimit(60);
         window.Closed += (_, __) => window.Close();
 
-        font = new Font(Path.Combine(pathContent,"Lato-Regular.ttf"));
-        tankTexture = new Texture(Path.Combine(pathContent,"red_tank.png"));
-        chickenTexture = new Texture(Path.Combine(pathContent, "elf.png"));
-        clock=new Clock();
+        // шлях до Content
+        string assetsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "Content");
+
+        font = new Font(Path.Combine(assetsPath, "Lato-Regular.ttf"));
+        clock = new Clock();
+
         mainMenu = new ButtonManagerMainMenu(font, window.Size.X, window.Size.Y);
-        chooseGameMenu = new ButtonManagerChooseGame(new Texture[] { tankTexture, chickenTexture }, window.Size.X, window.Size.Y);
+        var tankTex = new Texture(Path.Combine(assetsPath, "red_tank.png"));
+        var chickenTex = new Texture(Path.Combine(assetsPath, "chicken.png"));
+        chooseGameMenu = new ButtonManagerChooseGame(new[] { tankTex, chickenTex }, window.Size.X, window.Size.Y);
 
         window.MouseButtonPressed += OnMousePressed;
 
         while (window.IsOpen)
         {
-            deltaTime = clock.Restart();
+            var dt = clock.Restart();
             window.DispatchEvents();
             window.Clear(Color.Black);
 
-            Vector2i mouse = Mouse.GetPosition(window);
-
-            switch (currentState)
+            var mouse = Mouse.GetPosition(window);
+            if (currentState == GameState.MainMenu)
             {
-                case GameState.MainMenu:
-                    mainMenu.Update(mouse, false);
-                    mainMenu.Draw(window);
-                    break;
-
-                case GameState.ChooseGame:
-                    chooseGameMenu.Update(mouse, false);
-                    chooseGameMenu.Draw(window);
-                    break;
-
-                case GameState.Tank:
-                    tankGame.Update(deltaTime,window);
-                    tankGame.Draw(window);
-                    break;
+                mainMenu.Update(mouse, false);
+                mainMenu.Draw(window);
+            }
+            else if (currentState == GameState.ChooseGame)
+            {
+                chooseGameMenu.Update(mouse, false);
+                chooseGameMenu.Draw(window);
             }
 
             window.Display();
         }
     }
 
-    static void OnMousePressed(object sender, MouseButtonEventArgs e)
+    static void OnMousePressed(object s, MouseButtonEventArgs e)
     {
         if (e.Button != Mouse.Button.Left) return;
-
-        Vector2i mouse = Mouse.GetPosition(window);
+        var mouse = Mouse.GetPosition(window);
 
         if (currentState == GameState.MainMenu && mainMenu.Update(mouse, true))
         {
@@ -92,26 +93,22 @@ class Program
         }
         else if (currentState == GameState.ChooseGame && chooseGameMenu.Update(mouse, true))
         {
-            
-            try
+            if (chooseGameMenu.SelectedGame == 0)
             {
-                if (chooseGameMenu.SelectedGame == 0)
-                {
-                    tankGame = new TankGame(pathContent, mainMenu.SelectedPlayers);
-                    currentState = GameState.Tank;// Launch tank game here
-                }
-                else
-                {
-                    currentState = GameState.MainMenu;
-                }
+                var levels = new List<Level>
+                    {
+                        new Level(Map1),
+                        new Level(Map2),
+                        new Level(Map3)
+                    };
+                var selector = new RandomMapSelector(levels);
+                var tournament = new Tournament(selector,
+                                    "C: \\Users\\ADMIN\\OneDrive\\Desktop\\Course_Work\\bin\\Content",
+                                    mainMenu.SelectedPlayers);
+                tournament.Start(window);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Помилка при створенні гри: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
-            }
-
-            
+            currentState = GameState.MainMenu;
         }
     }
 }
+

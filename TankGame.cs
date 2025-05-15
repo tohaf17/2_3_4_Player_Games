@@ -1,146 +1,98 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace k
 {
     public class TankGame
     {
-        private List<GameEntity> entities = new();
-        
-        private int[,] map;
+        private readonly List<GameEntity> entities = new();
+        private readonly int[,] map;
         private const int tileSize = 64;
-        private Vector2f offset ;
+        private Vector2f offset;
 
-        private Texture darkBlock;
-        private Texture grayBlock;
-        private Texture leftDarkBlock;
+        private readonly MapCollider mapCollider;
+        private readonly MapRenderer renderer;
 
+        public IEnumerable<GameEntity> Entities => entities;
+        public bool IsGameOver() => entities.OfType<Tank>().Count(t => t.IsAlive) <= 1;
 
-        public TankGame(string pathContent, int players)
+        public TankGame(int[,] map, string assetsPath, int playerCount)
         {
-            map = new int[,]
-            {
-        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 },
-        { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 }
-            };
+            this.map = map;
 
-            // ТЕКСТУРИ
-            darkBlock = new Texture(Path.Combine(pathContent, "dark_block.png"));
-            grayBlock = new Texture(Path.Combine(pathContent, "gray_block.png"));
-            leftDarkBlock = new Texture(Path.Combine(pathContent, "left_side_block.png"));
-
-            var redTankTexture = new Texture(Path.Combine(pathContent, "red_tank.png"));
-            var blueTankTexture = new Texture(Path.Combine(pathContent, "blue_tank.png"));
-            var greenTankTexture = new Texture(Path.Combine(pathContent, "green_tank.png"));
-            var yellowTankTexture = new Texture(Path.Combine(pathContent, "yellow_tank.png"));
-            var destroyedTexture = new Texture(Path.Combine(pathContent, "gray_tank.png"));
-
-            var redBombTexture = new Texture(Path.Combine(pathContent, "red_bomb.png"));
-            var blueBombTexture = new Texture(Path.Combine(pathContent, "blue_bomb.png"));
-            var greenBombTexture = new Texture(Path.Combine(pathContent, "green.png"));
-            var yellowBombTexture = new Texture(Path.Combine(pathContent, "yellow_bomb.png"));
-
-            // ВІДРАЗУ ОБЧИСЛЮЄМО OFFSET
-            float mapWidth = tileSize * map.GetLength(1);
-            float mapHeight = tileSize * map.GetLength(0);
+            // початковий Offset для 1280×720
             offset = new Vector2f(
-                (1280 - mapWidth) / 2f,   // Наприклад якщо вікно 1280x720
-                (720 - mapHeight) / 2f
+                (1280 - tileSize * map.GetLength(1)) / 2f,
+                (720 - tileSize * map.GetLength(0)) / 2f
             );
 
-            // ТЕПЕР СТВОРЮЄМО ТАНКИ І ПЕРЕДАЄМО OFFSET
-            if (players >= 2)
+            renderer = new MapRenderer(map, tileSize, offset, assetsPath);
+            mapCollider = new MapCollider(map, offset, tileSize);
+
+            // завантажуємо текстури
+
+            assetsPath = "C:\\Users\\ADMIN\\OneDrive\\Desktop\\Course_Work\\bin\\Content";
+            var redTankTex = new Texture(Path.Combine(assetsPath, "red_tank.png"));
+            var blueTankTex = new Texture(Path.Combine(assetsPath, "blue_tank.png"));
+            var greenTankTex = new Texture(Path.Combine(assetsPath, "green_tank.png"));
+            var yellowTankTex = new Texture(Path.Combine(assetsPath, "yellow_tank.png"));
+            var destroyedTex = new Texture(Path.Combine(assetsPath, "gray_tank.png"));
+
+            var redBombTex = new Texture(Path.Combine(assetsPath, "red_bomb.png"));
+            var blueBombTex = new Texture(Path.Combine(assetsPath, "blue_bomb.png"));
+            var greenBombTex = new Texture(Path.Combine(assetsPath, "green_bomb.png"));
+            var yellowBombTex = new Texture(Path.Combine(assetsPath, "yellow_bomb.png"));
+
+            if (playerCount >= 2)
             {
-                entities.Add(new Tank(redTankTexture, new Vector2f(628, 378), Keyboard.Key.Q, destroyedTexture, redBombTexture, map, tileSize, offset));
-                entities.Add(new Tank(blueTankTexture, new Vector2f(1396, 698), Keyboard.Key.M, destroyedTexture, blueBombTexture, map, tileSize, offset));
+                GameEntity redTank = new Tank(redTankTex, new Vector2f(628, 378), Keyboard.Key.Q, destroyedTex, redBombTex, mapCollider);
+                ((Tank)redTank).Data.Color = "Red";
+                entities.Add(redTank);
+
+                GameEntity blueTank = new Tank(blueTankTex, new Vector2f(1396, 698), Keyboard.Key.M, destroyedTex, blueBombTex, mapCollider);
+                ((Tank)blueTank).Data.Color = "Blue";
+                entities.Add(blueTank);
             }
-            if (players >= 3)
+            if (playerCount >= 3)
             {
-                entities.Add(new Tank(greenTankTexture, new Vector2f(1396, 378), Keyboard.Key.Num9, destroyedTexture, greenBombTexture, map, tileSize, offset));
+                GameEntity greenTank = new Tank(greenTankTex, new Vector2f(1396, 378), Keyboard.Key.Numpad9, destroyedTex, greenBombTex, mapCollider);
+                ((Tank)greenTank).Data.Color = "Green";
+                entities.Add(greenTank);
             }
-            if (players == 4)
+            if (playerCount >= 4)
             {
-                entities.Add(new Tank(yellowTankTexture, new Vector2f(628, 698), Keyboard.Key.V, destroyedTexture, yellowBombTexture, map, tileSize, offset));
+                GameEntity yellowTank = new Tank(yellowTankTex, new Vector2f(628, 698), Keyboard.Key.V, destroyedTex, yellowBombTex, mapCollider);
+                ((Tank)yellowTank).Data.Color = "Yellow";
+                entities.Add(yellowTank);
             }
         }
 
-
         public void Update(Time deltaTime, RenderWindow window)
         {
-            // 1) Оновлюємо offset по центру:
-            float mapW = tileSize * map.GetLength(1);
-            float mapH = tileSize * map.GetLength(0);
+            // оновлюємо Offset під поточний розмір вікна
             offset = new Vector2f(
-                (window.Size.X - mapW) / 2f,
-                (window.Size.Y - mapH) / 2f
+                (window.Size.X - tileSize * map.GetLength(1)) / 2f,
+                (window.Size.Y - tileSize * map.GetLength(0)) / 2f
             );
+            renderer.UpdateOffset(offset);
+            mapCollider.Offset = offset;
 
-            // 2) Для кожного танка викликаємо Update із актуальним offset
+            // апдейтимо танки
             foreach (var t in entities.OfType<Tank>())
                 t.Update(deltaTime, entities, map, offset);
         }
 
         public void Draw(RenderWindow window)
         {
-            // РОЗРАХУНОК НОВОГО OFFSET ПО ЦЕНТРУ
-            var mapWidthInPixels = tileSize * map.GetLength(1);
-            var mapHeightInPixels = tileSize * map.GetLength(0);
-
-            offset = new Vector2f(
-                (window.Size.X - mapWidthInPixels) / 2f,
-                (window.Size.Y - mapHeightInPixels) / 2f
-            );
-
-            // МАЛЮЄМО ФОН
-            for (int y = 0; y < window.Size.Y; y += tileSize)
-            {
-                for (int x = 0; x < window.Size.X; x += tileSize)
-                {
-                    Sprite backgroundTile = new Sprite(darkBlock)
-                    {
-                        Position = new Vector2f(x, y),
-                        Scale = new Vector2f(tileSize / (float)darkBlock.Size.X, tileSize / (float)darkBlock.Size.Y)
-                    };
-                    window.Draw(backgroundTile);
-                }
-            }
-
-            // МАЛЮЄМО КАРТУ
-            for (int y = 0; y < map.GetLength(0); y++)
-            {
-                for (int x = 0; x < map.GetLength(1); x++)
-                {
-                    Texture texture = map[y, x] switch
-                    {
-                        1 => darkBlock,
-                        0 => grayBlock,
-                        _ => grayBlock
-                    };
-
-                    Sprite tile = new Sprite(texture)
-                    {
-                        Position = new Vector2f(x * tileSize + offset.X, y * tileSize + offset.Y),
-                        Scale = new Vector2f(tileSize / (float)texture.Size.X, tileSize / (float)texture.Size.Y)
-                    };
-                    window.Draw(tile);
-                }
-            }
-
-            foreach (var entity in entities)
-                entity.Draw(window);
+            renderer.Draw(window);
+            foreach (var e in entities)
+                e.Draw(window);
         }
-
     }
 }
+ 

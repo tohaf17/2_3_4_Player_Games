@@ -1,4 +1,11 @@
 bin/
+<<<<<<< HEAD
 obj/
 
+=======
+*.mgcontent
+*.cache
+*.pdb
+>>>>>>> 84a0e1204d3b360aef02c3f61c2bde02fb4b5845
+.vs/
 .vs/
