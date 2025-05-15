@@ -1,67 +1,64 @@
 ﻿using SFML.Graphics;
 using SFML.System;
-using System.IO;
+using System;
+using System.Collections.Generic;
 
 namespace k
 {
     public class MapRenderer
     {
-        private readonly int[,] map;
-        private readonly int tileSize;
-        private Vector2f offset;
+        private const int tileSize = 64;
+        private readonly Texture block;
+        public readonly Texture wall;
+        private readonly int count = 10;
+        public List<Vector2i> WallPositions { get; set; } = new();
+        public List<Sprite> spritesWall { get; set; } = new();
 
-        private readonly Texture wallTex;
-        private readonly Texture grayTex;
-        private readonly Texture darkTex;
-        private readonly Texture sideTex;
+        private bool generated = false;
 
-        public MapRenderer(int[,] map, int tileSize, Vector2f offset, string assetsPath)
+        public MapRenderer((string, string) level_textures)
         {
-            this.map = map;
-            this.tileSize = tileSize;
-            this.offset = offset;
-
-            assetsPath = "C:\\Users\\ADMIN\\OneDrive\\Desktop\\Course_Work\\bin\\Content";
-
-            // Завантажуємо текстури один раз
-            wallTex = new Texture(Path.Combine(assetsPath, "wall.png"));
-            grayTex = new Texture(Path.Combine(assetsPath, "gray_block.png"));
-            darkTex = new Texture(Path.Combine(assetsPath, "dark_block.png"));
-            sideTex = new Texture(Path.Combine(assetsPath, "left_side_block.png"));
-        }
-
-        public void UpdateOffset(Vector2f newOffset)
-        {
-            offset = newOffset;
+            block = new Texture(level_textures.Item1);
+            wall = new Texture(level_textures.Item2);
         }
 
         public void Draw(RenderWindow window)
         {
-            // фон
+            // Генеруємо стіни лише один раз, коли вже є розмір вікна
+            if (!generated)
+            {
+                GenerateWalls(window.Size);
+                generated = true;
+            }
+
+            // Малюємо блоки фону
             for (int y = 0; y < window.Size.Y; y += tileSize)
                 for (int x = 0; x < window.Size.X; x += tileSize)
-                    DrawTile(window, darkTex, x, y);
+                    DrawTile(window, block, x, y);
 
-            // сама карта
-            for (int y = 0; y < map.GetLength(0); y++)
-                for (int x = 0; x < map.GetLength(1); x++)
+            // Малюємо стіни
+            foreach (var pos in WallPositions)
+                DrawTile(window, wall, pos.X, pos.Y);
+        }
+
+        private void GenerateWalls(Vector2u windowSize)
+        {
+            Random random = new Random();
+            WallPositions.Clear();
+            for (int i = 0; i < count; i++)
+            {
+                int x = random.Next(0, (int)(windowSize.X / tileSize)) * tileSize;
+                int y = random.Next(0, (int)(windowSize.Y / tileSize)) * tileSize;
+                WallPositions.Add(new Vector2i(x, y));
+                spritesWall.Add(new Sprite(wall)
                 {
-                    Texture tex = map[y, x] switch
-                    {
-                        1 => wallTex,
-                        0 => grayTex,
-                        2 or 3 or 4 or 5 => sideTex,
-                        _ => grayTex
-                    };
-                    float rotation = map[y, x] == 3 ? 180f
-                                    : map[y, x] == 4 ? 90f
-                                    : map[y, x] == 5 ? 270f
-                                    : 0f;
-                    DrawTile(window, tex,
-                        (int)(x * tileSize + offset.X),
-                        (int)(y * tileSize + offset.Y),
-                        rotation);
-                }
+                    Position = new Vector2f(x, y),
+                    Scale = new Vector2f(tileSize / (float)wall.Size.X, tileSize / (float)wall.Size.Y),
+                    Rotation = 0f,
+                    Origin = new Vector2f(0, 0)
+                });
+            }
+
         }
 
         private void DrawTile(RenderWindow window, Texture tex, int x, int y, float rotation = 0f)
@@ -71,7 +68,7 @@ namespace k
                 Position = new Vector2f(x, y),
                 Scale = new Vector2f(tileSize / (float)tex.Size.X, tileSize / (float)tex.Size.Y),
                 Rotation = rotation,
-                Origin = new Vector2f(tex.Size.X * 0.5f, tex.Size.Y * 0.5f)
+                Origin = new Vector2f(0, 0)
             };
             window.Draw(spr);
         }

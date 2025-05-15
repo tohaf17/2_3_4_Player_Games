@@ -8,6 +8,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>false</UseWPF>
+    <Platforms>AnyCPU;x64</Platforms>
     <!-- Не використовуємо WPF для цього випадку -->
   </PropertyGroup>
 

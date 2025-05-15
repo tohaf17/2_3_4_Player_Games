@@ -7,25 +7,29 @@ namespace k
 {
     public class Tournament
     {
-        private readonly IMapSelector selector;
         private readonly string assetsPath;
         private readonly int playerCount;
+        private List<(string,string)> levels = new();
 
-        public Tournament(IMapSelector selector, string assetsPath, int playerCount)
+        public Tournament(string assetsPath, int playerCount)
         {
-            this.selector = selector;
-            this.assetsPath = "C:\\Users\\ADMIN\\OneDrive\\Desktop\\Course_Work\\bin\\Content";
+            this.assetsPath = @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content";
+            levels = new List<(string, string)>
+            {
+                (Path.Combine(assetsPath, "gray_block.png"),Path.Combine(assetsPath,"gray_wall.png")),
+                (Path.Combine(assetsPath, "yellow_block.png"),Path.Combine(assetsPath,"yellow_wall.png")),
+                ("","")
+            };
             this.playerCount = playerCount;
         }
 
         public void Start(RenderWindow window)
         {
-            var levels = selector.SelectMaps(3);
             var overall = new Dictionary<string, int>();
 
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 2; i++)
             {
-                var session = new GameSession(levels[i], assetsPath, playerCount);
+                var session = new GameSession(levels[i], assetsPath, playerCount,window);
                 session.Run(window);
 
                 var results = session.GetResults();

@@ -35,6 +35,7 @@ class Program
     public static readonly int[,] Map3 = Map1; // можна задати іншу
 
     static RenderWindow window;
+    static string assetsPath;
     static GameState currentState = GameState.MainMenu;
     static Font font;
     static ButtonManagerMainMenu mainMenu;
@@ -44,13 +45,14 @@ class Program
     static void Main(string[] args)
     {
         window = new RenderWindow(VideoMode.DesktopMode, "SFML Game", Styles.Titlebar | Styles.Close);
-        window.SetFramerateLimit(60);
+        //window.SetFramerateLimit(60);
         window.Closed += (_, __) => window.Close();
 
         // шлях до Content
-        string assetsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "Content");
+        assetsPath = @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content";
 
-        font = new Font(Path.Combine(assetsPath, "Lato-Regular.ttf"));
+
+        font = new Font(@"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content\Lato-Regular.ttf");
         clock = new Clock();
 
         mainMenu = new ButtonManagerMainMenu(font, window.Size.X, window.Size.Y);
@@ -62,8 +64,9 @@ class Program
 
         while (window.IsOpen)
         {
-            var dt = clock.Restart();
+            
             window.DispatchEvents();
+            var dt = clock.Restart();
             window.Clear(Color.Black);
 
             var mouse = Mouse.GetPosition(window);
@@ -101,9 +104,8 @@ class Program
                         new Level(Map2),
                         new Level(Map3)
                     };
-                var selector = new RandomMapSelector(levels);
-                var tournament = new Tournament(selector,
-                                    "C: \\Users\\ADMIN\\OneDrive\\Desktop\\Course_Work\\bin\\Content",
+                var tournament = new Tournament(
+                                    assetsPath,
                                     mainMenu.SelectedPlayers);
                 tournament.Start(window);
             }

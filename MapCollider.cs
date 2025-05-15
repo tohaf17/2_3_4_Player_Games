@@ -1,45 +1,48 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+using System.Collections.Generic;
+using static System.Formats.Asn1.AsnWriter;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace k
 {
     public class MapCollider
     {
-        public int[,] Map { get; }
-        public Vector2f Offset { get; set; }
-        public int tileSize { get; }
+        public readonly Texture wallTexture;
+        public readonly byte[] wallMask;
+        private readonly List<Sprite> wallSprite;
+        public readonly Vector2f wallScale;
+        private const int alphaLimit = 10;
 
-        public MapCollider(int[,] map, Vector2f offset, int tileSize=64)
+        public MapCollider(string wallTexturePath, List<Sprite> wallTilePositions, int tileSize = 64)
         {
-            Map = map;
-            Offset = offset;
-            tileSize = tileSize;
+            wallTexture = new Texture(wallTexturePath);
+            wallMask = PixelPerfectCollision.CreateMask(wallTexture);
+            wallSprite =  wallTilePositions;
+
+            
+
+            wallScale = new Vector2f(64f / wallTexture.Size.X, 64f / wallTexture.Size.Y);
         }
 
-        public bool Collides(Sprite sprite, byte[] mask, Vector2f testPos)
+        public (bool,Sprite?) Collides(Sprite tankSprite, byte[] tankMask, Vector2f testPos)
         {
-            var gb = sprite.GetGlobalBounds();
-            float w = gb.Width, h = gb.Height;
-            float left = testPos.X - w / 2f;
-            float top = testPos.Y - h / 2f;
-            float right = left + w;
-            float bottom = top + h;
+            var oldPos = tankSprite.Position;
+            tankSprite.Position = testPos;
 
-            int x0 = (int)((left - Offset.X) / 64);
-            int x1 = (int)((right - Offset.X) / 64);
-            int y0 = (int)((top - Offset.Y) / 64);
-            int y1 = (int)((bottom - Offset.Y) / 64);
+            foreach (var wallPos in wallSprite)
+            {
+                
 
-            for (int y = y0; y <= y1; y++)
-                for (int x = x0; x <= x1; x++)
+                if (PixelPerfectCollision.Test(tankSprite, tankMask, wallPos, wallMask, alphaLimit))
                 {
-                    if (x < 0 || y < 0
-                     || y >= Map.GetLength(0)
-                     || x >= Map.GetLength(1)
-                     || Map[y, x] != 0)
-                        return true;
+                    tankSprite.Position = oldPos; // відновлення позиції
+                    return (true,wallPos);
                 }
-            return false;
+            }
+
+            tankSprite.Position = oldPos; // відновлення позиції
+            return (false,null);
         }
     }
 }

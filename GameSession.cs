@@ -8,37 +8,52 @@ namespace k
 {
     public class GameSession
     {
-        private readonly TankGame game;
+        private readonly TankGame _game;
 
-        public GameSession(Level level, string assetsPath, int playerCount)
+        public GameSession((string,string) level, string assetsPath,
+                           int playerCount, RenderWindow window)
         {
-            level.CalculateOffset(1280, 720, 64);
-            game = new TankGame(level.Map, assetsPath, playerCount);
+            //level.CalculateOffset(1200, 720, 64);
+            _game = new TankGame(
+                                 level,
+                                 assetsPath,
+                                 playerCount,
+                                 window);
         }
 
         public void Run(RenderWindow window)
         {
             var clock = new Clock();
-            while (window.IsOpen && !game.IsGameOver())
+
+            while (window.IsOpen && !_game.IsGameOver())
             {
                 var dt = clock.Restart();
                 window.DispatchEvents();
-                game.Update(dt, window);
-                window.Clear();
-                game.Draw(window);
+
+                _game.Update(dt, window);
+
+                // 1) очищаємо бека
+                window.Clear(Color.Black);
+
+                // 2) малюємо кеш-фон
+                _game.DrawMap(window);
+
+                // 3) малюємо танки/бомби зверху
+                _game.DrawEntities(window);
+
+                // 4) показуємо кадр
                 window.Display();
             }
         }
 
-        public Dictionary<string, int> GetResults()
-    => game.Entities
-           .OfType<Tank>()
-           .ToDictionary(t => t.Data.Color, t => t.Data.Score);
 
+
+
+        public Dictionary<string, int> GetResults()
+            => _game.Entities
+                   .OfType<Tank>()
+                   .ToDictionary(t => t.Data.Color, t => t.Data.Score);
     }
+
+
 }
-//public Dictionary<string, int> GetResults()
-//    => game.Entities
-//           .OfType<Tank>()
-//           .Where(t => !string.IsNullOrEmpty(t.Data.Color))
-//           .ToDictionary(t => t.Data.Color, t => t.Data.Score);

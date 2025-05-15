@@ -1,8 +1,8 @@
 ﻿using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
-using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Linq;
 
@@ -11,32 +11,20 @@ namespace k
     public class TankGame
     {
         private readonly List<GameEntity> entities = new();
-        private readonly int[,] map;
-        private const int tileSize = 64;
-        private Vector2f offset;
-
-        private readonly MapCollider mapCollider;
+        private readonly Vector2u screenSize;
         private readonly MapRenderer renderer;
+        private readonly MapCollider collider;
 
-        public IEnumerable<GameEntity> Entities => entities;
-        public bool IsGameOver() => entities.OfType<Tank>().Count(t => t.IsAlive) <= 1;
 
-        public TankGame(int[,] map, string assetsPath, int playerCount)
+        public TankGame((string,string) level,string assetsPath, int playerCount, RenderWindow window)
         {
-            this.map = map;
+            screenSize = window.Size;
+            renderer = new MapRenderer(level);
+            collider = new MapCollider(level.Item2,renderer.spritesWall);
 
-            // початковий Offset для 1280×720
-            offset = new Vector2f(
-                (1280 - tileSize * map.GetLength(1)) / 2f,
-                (720 - tileSize * map.GetLength(0)) / 2f
-            );
 
-            renderer = new MapRenderer(map, tileSize, offset, assetsPath);
-            mapCollider = new MapCollider(map, offset, tileSize);
 
-            // завантажуємо текстури
-
-            assetsPath = "C:\\Users\\ADMIN\\OneDrive\\Desktop\\Course_Work\\bin\\Content";
+            // Завантаження текстур танків і бомб
             var redTankTex = new Texture(Path.Combine(assetsPath, "red_tank.png"));
             var blueTankTex = new Texture(Path.Combine(assetsPath, "blue_tank.png"));
             var greenTankTex = new Texture(Path.Combine(assetsPath, "green_tank.png"));
@@ -48,51 +36,49 @@ namespace k
             var greenBombTex = new Texture(Path.Combine(assetsPath, "green_bomb.png"));
             var yellowBombTex = new Texture(Path.Combine(assetsPath, "yellow_bomb.png"));
 
+            // Створення танків (позиції довільні)
             if (playerCount >= 2)
             {
-                GameEntity redTank = new Tank(redTankTex, new Vector2f(628, 378), Keyboard.Key.Q, destroyedTex, redBombTex, mapCollider);
-                ((Tank)redTank).Data.Color = "Red";
-                entities.Add(redTank);
-
-                GameEntity blueTank = new Tank(blueTankTex, new Vector2f(1396, 698), Keyboard.Key.M, destroyedTex, blueBombTex, mapCollider);
-                ((Tank)blueTank).Data.Color = "Blue";
-                entities.Add(blueTank);
+                var red = new Tank(collider,redTankTex, new Vector2f(300, 300), Keyboard.Key.Q, destroyedTex, redBombTex,screenSize);
+                var blue = new Tank(collider,blueTankTex, new Vector2f(900, 300), Keyboard.Key.M, destroyedTex, blueBombTex, screenSize);
+                red.Data.Color = "Red";
+                blue.Data.Color = "Blue";
+                entities.Add(red);
+                entities.Add(blue);
             }
             if (playerCount >= 3)
             {
-                GameEntity greenTank = new Tank(greenTankTex, new Vector2f(1396, 378), Keyboard.Key.Numpad9, destroyedTex, greenBombTex, mapCollider);
-                ((Tank)greenTank).Data.Color = "Green";
-                entities.Add(greenTank);
+                var green = new Tank(collider, greenTankTex, new Vector2f(900, 600), Keyboard.Key.Numpad9, destroyedTex, greenBombTex, screenSize);
+                green.Data.Color = "Green";
+                entities.Add(green);
             }
             if (playerCount >= 4)
             {
-                GameEntity yellowTank = new Tank(yellowTankTex, new Vector2f(628, 698), Keyboard.Key.V, destroyedTex, yellowBombTex, mapCollider);
-                ((Tank)yellowTank).Data.Color = "Yellow";
-                entities.Add(yellowTank);
+                var yellow = new Tank(collider, yellowTankTex, new Vector2f(300, 600), Keyboard.Key.V, destroyedTex, yellowBombTex, screenSize);
+                yellow.Data.Color = "Yellow";
+                entities.Add(yellow);
             }
         }
 
         public void Update(Time deltaTime, RenderWindow window)
         {
-            // оновлюємо Offset під поточний розмір вікна
-            offset = new Vector2f(
-                (window.Size.X - tileSize * map.GetLength(1)) / 2f,
-                (window.Size.Y - tileSize * map.GetLength(0)) / 2f
-            );
-            renderer.UpdateOffset(offset);
-            mapCollider.Offset = offset;
-
-            // апдейтимо танки
-            foreach (var t in entities.OfType<Tank>())
-                t.Update(deltaTime, entities, map, offset);
+            foreach (var entity in entities.OfType<Tank>())
+                entity.Update(deltaTime, entities, null, default);
         }
 
-        public void Draw(RenderWindow window)
+        public void DrawMap(RenderWindow window)
         {
             renderer.Draw(window);
-            foreach (var e in entities)
-                e.Draw(window);
         }
+
+
+        public void DrawEntities(RenderWindow window)
+        {
+            foreach (var entity in entities)
+                entity.Draw(window);
+        }
+
+        public bool IsGameOver() => entities.OfType<Tank>().Count(t => t.IsAlive) <= 1;
+        public IEnumerable<GameEntity> Entities => entities;
     }
 }
- 

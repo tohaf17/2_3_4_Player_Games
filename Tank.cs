@@ -39,23 +39,25 @@ public class Tank : GameEntity, IControllable
     private PlayerData data = new();
 
     private int[,] map;
-    private const int tileSize =64;
+    private const int tileSize = 64;
     private Vector2f offset;
+    private Vector2u screenSize;
 
-    public Tank(Texture texture,
+    public Tank(
+                 MapCollider collider,          
+        Texture texture,
                  Vector2f position,
                  Keyboard.Key key,
                  Texture greyTexture,
                  Texture bombTex,
-                 MapCollider mapCollider
+                 Vector2u screenSize
         )
     {
-        this.map = mapCollider.Map;
-        this.offset = mapCollider.Offset;
+        this.collider = collider;
+        this.screenSize = screenSize;
         this.fireKey = key;
         this.destroyedTexture = greyTexture;
         this.bombTexture = bombTex;
-        collider = mapCollider;
 
         SetupSprite(texture, position);
     }
@@ -73,8 +75,7 @@ public class Tank : GameEntity, IControllable
 
     public override void Update(Time deltaTime, List<GameEntity> entities, int[,] map, Vector2f offset)
     {
-        // синхронізуємо карту/offset у колайдері
-        collider.Offset = offset;
+        
 
         float delta = deltaTime.AsSeconds();
         bomb?.Update(deltaTime, entities, map, offset);
@@ -86,15 +87,15 @@ public class Tank : GameEntity, IControllable
 
         // рух по X
         var tryX = new Vector2f(pos.X - step.X, pos.Y);
-        bool hitWallX = CollidesWithWall(tryX);
         bool hitTankX = CollidesWithTank(tryX, entities);
-        if (!hitWallX && !hitTankX) pos.X = tryX.X; else velocity.X = 0;
+        bool hitWallX = CollidesWithWall(tryX);
+        if (!hitTankX&&!hitWallX) pos.X = tryX.X; else velocity.X = 0;
 
         // рух по Y
         var tryY = new Vector2f(pos.X, pos.Y - step.Y);
-        bool hitWallY = CollidesWithWall(tryY);
         bool hitTankY = CollidesWithTank(tryY, entities);
-        if (!hitWallY && !hitTankY) pos.Y = tryY.Y; else velocity.Y = 0;
+        bool hitWallY = CollidesWithWall(tryY);
+        if (!hitTankY&&!hitWallY) pos.Y = tryY.Y; else velocity.Y = 0;
 
         sprite.Position = pos;
         velocity *= damping;
@@ -105,31 +106,45 @@ public class Tank : GameEntity, IControllable
     {
         if (!IsAlive) return;
 
+        if ((bomb == null || !bomb.IsActive) && cooldown <= 0f && Keyboard.IsKeyPressed(fireKey))
+        {
+            float a = sprite.Rotation * (float)Math.PI / 180f;
+            var dir = new Vector2f(-(float)Math.Sin(a), (float)Math.Cos(a));
+            var spawn = sprite.Position + dir * 32f;
+            bomb = new Bomb(bombTexture, spawn, dir, sprite.Rotation, this, screenSize);
+            cooldown = BombDelay;
+        }
+
         if (Keyboard.IsKeyPressed(fireKey))
         {
-            // Рух вперед
             float a = (sprite.Rotation - 90f) * (float)Math.PI / 180f;
-            Vector2f dir = new Vector2f((float)Math.Cos(a), (float)Math.Sin(a));
+            var dir = new Vector2f((float)Math.Cos(a), (float)Math.Sin(a));
             velocity += dir * dAcc * dt;
-
-            // Стрільба
-            if ((bomb == null || !bomb.IsActive) && cooldown <= 0f)
-            {
-                float b = sprite.Rotation * (float)Math.PI / 180f;
-                Vector2f bdir = new Vector2f(-(float)Math.Sin(b), (float)Math.Cos(b));
-                Vector2f spawn = sprite.Position + bdir * 32f;
-                bomb = new Bomb(bombTexture, spawn, bdir, sprite.Rotation, this, offset, tileSize);
-                cooldown = BombDelay;
-            }
         }
         else
         {
-            // Чисте обертання без жодних перевірок
+            float oldRot = sprite.Rotation;
             sprite.Rotation += rotationSpeed * dt;
+
+            var other = entities.OfType<Tank>()
+                                .FirstOrDefault(t => t != this && Intersects(t, sprite.Position));
+            var smth= collider.Collides(this.sprite,this.collisionMask,this.sprite.Position).Item2;
+            if (other != null)
+            {
+                sprite.Rotation = oldRot;
+                var diff = sprite.Position - other.Position;
+                float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
+                if (len > 0) sprite.Position += (diff / len) * pushStrength;
+            }
+            else if (smth is not null )
+            {
+                sprite.Rotation = oldRot;
+                var diff = sprite.Position - smth.Position;
+                float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
+                if (len > 0) sprite.Position += (diff / len) * pushStrength;
+            }
         }
     }
-
-
 
 
 
@@ -149,8 +164,9 @@ public class Tank : GameEntity, IControllable
         SetupSprite(destroyedTexture, sprite.Position);
     }
     private bool CollidesWithWall(Vector2f testPos)
-        => collider.Collides(sprite, collisionMask, testPos);
+        => collider.Collides(sprite, collisionMask, testPos).Item1;
 
+   
     private bool CanMoveTo(Vector2f newPos, int[,] map)
     {
         // Отримуємо AABB спрайта (вже зі Scale)
@@ -189,37 +205,7 @@ public class Tank : GameEntity, IControllable
         return true;
     }
 
-    private Vector2f ComputeWallPush()
-    {
-        var gb = sprite.GetGlobalBounds();
-        var corners = new[]
-        {
-            new Vector2f(gb.Left,        gb.Top),
-            new Vector2f(gb.Left+gb.Width,  gb.Top),
-            new Vector2f(gb.Left,        gb.Top+gb.Height),
-            new Vector2f(gb.Left+gb.Width,  gb.Top+gb.Height),
-        };
-
-        Vector2f total = new Vector2f();
-        int count = 0;
-        for (int i = 0; i < corners.Length; i++)
-        {
-            var c = corners[i];
-            int tx = (int)((c.X - collider.Offset.X) / 64);
-            int ty = (int)((c.Y - collider.Offset.Y) / 64);
-            if (tx < 0 || ty < 0 || ty >= map.GetLength(0) || tx >= map.GetLength(1)) continue;
-            if (map[ty, tx] == 0) continue;
-            var center = new Vector2f(
-                tx *64 + collider.Offset.X + 64 / 2f,
-                ty * 64 + collider.Offset.Y + 64 / 2f
-            );
-            var d = sprite.Position - center;
-            float len = (float)Math.Sqrt(d.X * d.X + d.Y * d.Y);
-            if (len > 0) { total += d / len; count++; }
-        }
-        if (count > 0) total /= count;
-        return total;
-    }
+    
     private bool CollidesWithTank(Vector2f pos, List<GameEntity> entities)
     {
         // тимчасово перемістимо спрайт
@@ -236,7 +222,6 @@ public class Tank : GameEntity, IControllable
         sprite.Position = old;
         return hit;
     }
-
 
     public bool Intersects(Tank other, Vector2f pos)
     {
