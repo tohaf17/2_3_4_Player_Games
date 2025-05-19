@@ -13,7 +13,6 @@ namespace k
         public GameSession((string,string) level, string assetsPath,
                            int playerCount, RenderWindow window)
         {
-            //level.CalculateOffset(1200, 720, 64);
             _game = new TankGame(
                                  level,
                                  assetsPath,
@@ -32,16 +31,12 @@ namespace k
 
                 _game.Update(dt, window);
 
-                // 1) очищаємо бека
                 window.Clear(Color.Black);
 
-                // 2) малюємо кеш-фон
                 _game.DrawMap(window);
 
-                // 3) малюємо танки/бомби зверху
                 _game.DrawEntities(window);
 
-                // 4) показуємо кадр
                 window.Display();
             }
         }

@@ -18,7 +18,8 @@ namespace k
         private readonly byte[] collisionMask;
 
         public bool IsActive { get; private set; } = true;
-        private float lifetime = 5f; // 5 секунд життя
+        private float lifetime = 3f; 
+        private MapCollider collider;
 
 
         public Bomb(Texture texture,
@@ -27,12 +28,15 @@ namespace k
             float rotation,
             Tank owner,
             Vector2u screenSize,
+            MapCollider collider,
+
             int tileSize = 64)
 
         {
             this.direction = direction;
             this.owner = owner;
             this.screenSize = screenSize;
+            this.collider = collider;
 
             sprite = new Sprite(texture)
             {
@@ -45,7 +49,7 @@ namespace k
             collisionMask = PixelPerfectCollision.CreateMask(texture);
         }
 
-        public override void Update(Time delta, List<GameEntity> entities, int[,] _, Vector2f __)
+        public override void Update(Time delta, List<GameEntity> entities, Vector2f __)
         {
             if (!IsActive) return;
 
@@ -58,7 +62,6 @@ namespace k
             }
             sprite.Position += direction * speed * dt;
 
-            // --- Wrap по екрану ---
             var bounds = sprite.GetGlobalBounds();
             float halfW = bounds.Width / 2f;
             float halfH = bounds.Height / 2f;
@@ -73,15 +76,19 @@ namespace k
             else if (sprite.Position.Y > screenSize.Y + halfH)
                 sprite.Position = new Vector2f(sprite.Position.X, -halfH);
 
-            // --- Перевірка попадання ---
             foreach (var tank in entities.OfType<Tank>())
             {
+                if (collider.Collides(sprite, collisionMask, sprite.Position).Item1)
+                {
+                    IsActive = false;
+                }
                 if (tank != owner &&
                     PixelPerfectCollision.Test(
                         sprite, collisionMask,
                         tank.Sprite, tank.CollisionMask,
                         alphaLimit: 10))
                 {
+                    if (tank.HasShield()) continue;
                     tank.TakeDamage();
                     owner.Data.Score += 1;
                     IsActive = false;

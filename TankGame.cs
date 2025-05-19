@@ -12,15 +12,18 @@ namespace k
     {
         private readonly List<GameEntity> entities = new();
         private readonly Vector2u screenSize;
+
         private readonly MapRenderer renderer;
         private readonly MapCollider collider;
+
+        private Random random = new();
 
 
         public TankGame((string,string) level,string assetsPath, int playerCount, RenderWindow window)
         {
             screenSize = window.Size;
-            renderer = new MapRenderer(level);
-            collider = new MapCollider(level.Item2,renderer.spritesWall);
+            renderer = new MapRenderer(level,assetsPath);
+            collider = new MapCollider(assetsPath,renderer.spritesWall,renderer.spritesBox);
 
 
 
@@ -39,8 +42,8 @@ namespace k
             // Створення танків (позиції довільні)
             if (playerCount >= 2)
             {
-                var red = new Tank(collider,redTankTex, new Vector2f(300, 300), Keyboard.Key.Q, destroyedTex, redBombTex,screenSize);
-                var blue = new Tank(collider,blueTankTex, new Vector2f(900, 300), Keyboard.Key.M, destroyedTex, blueBombTex, screenSize);
+                var red = new Tank(collider,redTankTex, new Vector2f(random.Next(100,1800),random.Next(100,600)), Keyboard.Key.Q, destroyedTex, redBombTex,screenSize);
+                var blue = new Tank(collider,blueTankTex, new Vector2f(random.Next(100, 1800), random.Next(100, 600)), Keyboard.Key.M, destroyedTex, blueBombTex, screenSize);
                 red.Data.Color = "Red";
                 blue.Data.Color = "Blue";
                 entities.Add(red);
@@ -48,13 +51,13 @@ namespace k
             }
             if (playerCount >= 3)
             {
-                var green = new Tank(collider, greenTankTex, new Vector2f(900, 600), Keyboard.Key.Numpad9, destroyedTex, greenBombTex, screenSize);
+                var green = new Tank(collider, greenTankTex, new Vector2f(random.Next(100, 1800), random.Next(100, 600)), Keyboard.Key.Numpad9, destroyedTex, greenBombTex, screenSize);
                 green.Data.Color = "Green";
                 entities.Add(green);
             }
             if (playerCount >= 4)
             {
-                var yellow = new Tank(collider, yellowTankTex, new Vector2f(300, 600), Keyboard.Key.V, destroyedTex, yellowBombTex, screenSize);
+                var yellow = new Tank(collider, yellowTankTex, new Vector2f(random.Next(100, 1800), random.Next(100, 600)), Keyboard.Key.V, destroyedTex, yellowBombTex, screenSize);
                 yellow.Data.Color = "Yellow";
                 entities.Add(yellow);
             }
@@ -63,7 +66,7 @@ namespace k
         public void Update(Time deltaTime, RenderWindow window)
         {
             foreach (var entity in entities.OfType<Tank>())
-                entity.Update(deltaTime, entities, null, default);
+                entity.Update(deltaTime, entities, default);
         }
 
         public void DrawMap(RenderWindow window)
