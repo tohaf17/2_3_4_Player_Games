@@ -31,6 +31,7 @@ class Program
     {
         window = new RenderWindow(VideoMode.DesktopMode, "SFML Game", Styles.Titlebar | Styles.Close);
         window.Closed += (_, __) => window.Close();
+        window.SetFramerateLimit(60); // Додаємо обмеження кадрів для основного вікна
 
         assetsPath = @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content";
 
@@ -45,7 +46,8 @@ class Program
         {
             window.DispatchEvents();
             var dt = clock.Restart();
-            window.Clear(Color.Black);
+            // Змінюємо очищення фону тут, щоб він відповідало стилю меню
+            window.Clear(new Color(40, 40, 40)); // Темно-сірий фон
 
             var mouse = Mouse.GetPosition(window);
             if (currentState == GameState.MainMenu)
@@ -60,6 +62,7 @@ class Program
             else if (currentState == GameState.ViewHistory)
             {
                 // Відображення вікна історії відбувається в обробнику OnMousePressed
+                // Тут нічого не потрібно робити, оскільки ShowGameHistory блокує виконання
             }
 
             window.Display();
@@ -80,7 +83,6 @@ class Program
                 currentState = GameState.MainMenu; // Повертаємося до головного меню після перегляду історії
                 mainMenu.ViewHistoryClicked = false; // Скидаємо прапорець
             }
-            // ... inside Program.OnMousePressed
             else if (mainMenu.SelectedPlayers > 0)
             {
                 var tournament = new Tournament(assetsPath, mainMenu.SelectedPlayers);
@@ -91,20 +93,24 @@ class Program
         }
     }
 
-
-
     static void ShowMessage(string message, string title)
     {
         var messageWindow = new RenderWindow(new VideoMode(400, 200), title, Styles.Titlebar | Styles.Close);
         var text = new Text(message, font, 20);
-        text.Position = new Vector2f(20, 80);
+
+        // Центруємо текст у вікні повідомлення
+        FloatRect textRect = text.GetLocalBounds();
+        text.Origin = new Vector2f(textRect.Left + textRect.Width / 2f, textRect.Top + textRect.Height / 2f);
+        text.Position = new Vector2f(messageWindow.Size.X / 2f, messageWindow.Size.Y / 2f);
+        text.FillColor = Color.Black; // Змінюємо колір тексту на чорний
 
         messageWindow.Closed += (sender, e) => messageWindow.Close();
+        messageWindow.SetFramerateLimit(60); // Обмеження кадрів
 
         while (messageWindow.IsOpen)
         {
-            messageWindow.DispatchEvents(); // Додано DispatchEvents для обробки події Closed
-            messageWindow.Clear(Color.White);
+            messageWindow.DispatchEvents();
+            messageWindow.Clear(new Color(240, 240, 240)); // Світло-сірий фон для повідомлення
             messageWindow.Draw(text);
             messageWindow.Display();
         }
@@ -118,29 +124,45 @@ class Program
 
             var historyData = LoadGameHistoryData(filePath);
 
-            if (historyData == null) return;
+            // Якщо даних немає, LoadGameHistoryData вже викличе ShowMessage, тому просто виходимо
+            if (historyData == null || historyData.Count == 0) return;
 
-            var allKeys = historyData.SelectMany(dict => dict.Keys).Distinct().ToList();
-            var keys = new List<string> { "Red", "Blue","Green","Yellow", "EndTime" };
+            // Вибираємо тільки ті ключі, які ми хочемо відобразити, і в потрібному порядку
+            var keys = new List<string> { "Red", "Blue", "Green", "Yellow", "EndTime" };
 
-            var historyWindow = new RenderWindow(new VideoMode(900, 900), "Історія Ігор", Styles.Titlebar | Styles.Close); // Збільшуємо висоту вікна
+            // Динамічно визначаємо ширину вікна залежно від кількості колонок
+            float effectiveColumnSpacing = 180; // Збільшена відстань між колонками
+            float desiredWindowWidth = 80 + keys.Count * effectiveColumnSpacing; // 40px відступи зліва і справа + (кількість колонок * відстань)
+            if (desiredWindowWidth < 900) desiredWindowWidth = 900; // Мінімальна ширина
+
+            // Динамічно визначаємо висоту вікна
+            float headerHeight = 80;
+            float dataAreaHeight = historyData.Count * 40; // 40 - приблизна висота рядка даних
+            float buttonAreaHeight = 80; // Для кнопки очищення
+            float desiredWindowHeight = headerHeight + dataAreaHeight + buttonAreaHeight;
+            if (desiredWindowHeight < 600) desiredWindowHeight = 600; // Мінімальна висота
+
+            var historyWindow = new RenderWindow(new VideoMode((uint)desiredWindowWidth, (uint)desiredWindowHeight), "Game history", Styles.Titlebar | Styles.Close);
+            historyWindow.SetFramerateLimit(60); // Обмеження кадрів
+
             float rowHeight = 40;
-            float startY = 60;
-            float startX = 20;
-            float columnSpacing = 150;
-            float padding = 5;
-            float buttonWidth = 150;
-            float buttonHeight = 40;
-            float buttonX = startX;
-            float buttonY = startY + historyData.Count * rowHeight + 20; // Розміщуємо кнопку під сіткою
+            float startY = 100; // Змінено для більшого відступу зверху
+            float startX = 40;  // Відступ зліва
 
-            ClearHistoryButton clearButton = new ClearHistoryButton("Remove data", font, new Vector2f(buttonX, buttonY), new Vector2f(buttonWidth, buttonHeight));
+            float buttonWidth = 200; // Ширша кнопка
+            float buttonHeight = 50; // Вища кнопка
+            float buttonX = (historyWindow.Size.X - buttonWidth) / 2; // Центруємо кнопку по горизонталі
+            float buttonY = startY + (historyData.Count + 1) * rowHeight + 30; // Розміщуємо кнопку під сіткою з більшим відступом
+
+            ClearHistoryButton clearButton = new ClearHistoryButton("Delete history", font, new Vector2f(buttonX, buttonY), new Vector2f(buttonWidth, buttonHeight));
             clearButton.Clicked += (sender, args) =>
             {
                 try
                 {
                     File.WriteAllText(filePath, "[]"); // Очищуємо вміст файлу
-                    historyData = LoadGameHistoryData(filePath); // Перезавантажуємо дані
+                    historyData.Clear(); // Очищаємо дані в пам'яті
+                    ShowMessage("Історія успішно очищена!", "Очищення");
+                    historyWindow.Close(); // Закриваємо вікно історії після очищення
                 }
                 catch (Exception ex)
                 {
@@ -165,20 +187,31 @@ class Program
             while (historyWindow.IsOpen)
             {
                 historyWindow.DispatchEvents();
-                historyWindow.Clear(Color.White);
+                historyWindow.Clear(new Color(50, 50, 60)); // Темно-сірий фон, як у вікні результатів
 
-                // Заголовки
+                // Заголовок вікна історії
+                Text historyTitle = new Text("Game history", font, 36)
+                {
+                    FillColor = new Color(255, 220, 100) // Золотий колір
+                };
+                FloatRect titleRect = historyTitle.GetLocalBounds();
+                historyTitle.Origin = new Vector2f(titleRect.Left + titleRect.Width / 2f, titleRect.Top + titleRect.Height / 2f);
+                historyTitle.Position = new Vector2f(historyWindow.Size.X / 2f, 40);
+                historyWindow.Draw(historyTitle);
+
+
+                // Заголовки колонок
                 for (int i = 0; i < keys.Count; i++)
                 {
-                    var header = new Text(keys[i], font, 20)
+                    var header = new Text(keys[i], font, 24) // Більший шрифт для заголовків
                     {
-                        Position = new Vector2f(startX + i * columnSpacing + padding, 20),
-                        FillColor = Color.Black
+                        Position = new Vector2f(startX + i * effectiveColumnSpacing, startY - 40), // Трохи вище
+                        FillColor = new Color(170, 200, 255) // Світліший синій для заголовків
                     };
                     historyWindow.Draw(header);
                 }
 
-                // Рядки
+                // Рядки даних
                 for (int i = 0; i < historyData.Count; i++)
                 {
                     var row = historyData[i];
@@ -187,10 +220,32 @@ class Program
                         if (row.TryGetValue(keys[j], out var valueObj))
                         {
                             var value = valueObj?.ToString();
-                            var cell = new Text(value ?? "", font, 18)
+                            Color cellColor = Color.White; // За замовчуванням білий текст
+
+                            // Змінюємо колір для гравців
+                            switch (keys[j].ToLower())
                             {
-                                Position = new Vector2f(startX + j * columnSpacing + padding, startY + i * rowHeight),
-                                FillColor = Color.Black
+                                case "red":
+                                    cellColor = new Color(255, 150, 150);
+                                    break;
+                                case "blue":
+                                    cellColor = new Color(150, 200, 255);
+                                    break;
+                                case "green":
+                                    cellColor = new Color(150, 255, 150);
+                                    break;
+                                case "yellow":
+                                    cellColor = new Color(255, 255, 150);
+                                    break;
+                                case "endtime":
+                                    cellColor = new Color(200, 200, 200); // Сірий для дати
+                                    break;
+                            }
+
+                            var cell = new Text(value ?? "", font, 20) // Збільшуємо шрифт даних
+                            {
+                                Position = new Vector2f(startX + j * effectiveColumnSpacing, startY + i * rowHeight),
+                                FillColor = cellColor
                             };
                             historyWindow.Draw(cell);
                         }
@@ -198,7 +253,7 @@ class Program
                 }
 
                 // Лінії сітки
-                DrawGrid(historyWindow, startX, startY, rowHeight, columnSpacing, historyData.Count, keys.Count);
+                DrawGrid(historyWindow, startX, startY - 50, rowHeight, effectiveColumnSpacing, historyData.Count + 1, keys.Count); // Малюємо сітку з урахуванням заголовків
 
                 // Кнопка "Очистити дані"
                 clearButton.Draw(historyWindow, RenderStates.Default);
@@ -217,10 +272,15 @@ class Program
         if (!File.Exists(filePath))
         {
             ShowMessage("Файл історії не знайдено.", "Історія Ігор");
-            return new List<Dictionary<string, object>>();
+            return new List<Dictionary<string, object>>(); // Повертаємо порожній список, щоб уникнути NullReferenceException
         }
 
         string jsonString = File.ReadAllText(filePath);
+        if (string.IsNullOrWhiteSpace(jsonString) || jsonString == "[]")
+        {
+            ShowMessage("Історія ігор порожня.", "Історія Ігор");
+            return new List<Dictionary<string, object>>();
+        }
         try
         {
             var historyData = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(jsonString);
@@ -235,23 +295,24 @@ class Program
 
     static void DrawGrid(RenderTarget target, float startX, float startY, float rowHeight, float columnSpacing, int rows, int cols)
     {
-        for (int i = 0; i <= rows; i++)
-        {
-            var line = new VertexArray(PrimitiveType.Lines, 2);
-            float y = startY + i * rowHeight;
-            line[0] = new Vertex(new Vector2f(startX, y), Color.Black);
-            line[1] = new Vertex(new Vector2f(startX + cols * columnSpacing, y), Color.Black);
-            target.Draw(line);
-        }
-
+        // Вертикальні лінії
         for (int j = 0; j <= cols; j++)
         {
             var line = new VertexArray(PrimitiveType.Lines, 2);
             float x = startX + j * columnSpacing;
-            line[0] = new Vertex(new Vector2f(x, startY), Color.Black);
-            line[1] = new Vertex(new Vector2f(x, startY + rows * rowHeight), Color.Black);
+            line[0] = new Vertex(new Vector2f(x, startY), new Color(100, 100, 100)); // Темно-сірі лінії
+            line[1] = new Vertex(new Vector2f(x, startY + rows * rowHeight), new Color(100, 100, 100));
+            target.Draw(line);
+        }
+
+        // Горизонтальні лінії
+        for (int i = 0; i <= rows; i++)
+        {
+            var line = new VertexArray(PrimitiveType.Lines, 2);
+            float y = startY + i * rowHeight;
+            line[0] = new Vertex(new Vector2f(startX, y), new Color(100, 100, 100));
+            line[1] = new Vertex(new Vector2f(startX + cols * columnSpacing, y), new Color(100, 100, 100));
             target.Draw(line);
         }
     }
-
 }
