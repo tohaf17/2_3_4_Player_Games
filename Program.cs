@@ -80,32 +80,18 @@ class Program
                 currentState = GameState.MainMenu; // Повертаємося до головного меню після перегляду історії
                 mainMenu.ViewHistoryClicked = false; // Скидаємо прапорець
             }
+            // ... inside Program.OnMousePressed
             else if (mainMenu.SelectedPlayers > 0)
             {
                 var tournament = new Tournament(assetsPath, mainMenu.SelectedPlayers);
                 tournament.Start(window);
-                currentState = GameState.MainMenu; // Повертаємося до головного меню після турніру
-                mainMenu.SelectedPlayers = 0; // Скидаємо вибір гравців
+                currentState = GameState.MainMenu; // This line ensures return to main menu
+                mainMenu.SelectedPlayers = 0; // Reset player selection
             }
         }
     }
 
-    static void MapRenderer_ButtonClicked(object sender, ResultEventArgs e)
-    {
-        var resultWindow = new RenderWindow(new VideoMode(300, 200), "Результат", Styles.Titlebar | Styles.Close);
-        var text = new Text($"Ви знайшли секрет! Ваш результат: {e.Result}", font, 24);
-        text.Position = new Vector2f(10, 80);
 
-        resultWindow.Closed += (sender, args) => resultWindow.Close();
-
-        while (resultWindow.IsOpen)
-        {
-            resultWindow.DispatchEvents();
-            resultWindow.Clear(Color.White);
-            resultWindow.Draw(text);
-            resultWindow.Display();
-        }
-    }
 
     static void ShowMessage(string message, string title)
     {
@@ -135,9 +121,9 @@ class Program
             if (historyData == null) return;
 
             var allKeys = historyData.SelectMany(dict => dict.Keys).Distinct().ToList();
-            var keys = new List<string> { "Red", "Blue", "EndTime" };
+            var keys = new List<string> { "Red", "Blue","Green","Yellow", "EndTime" };
 
-            var historyWindow = new RenderWindow(new VideoMode(800, 650), "Історія Ігор", Styles.Titlebar | Styles.Close); // Збільшуємо висоту вікна
+            var historyWindow = new RenderWindow(new VideoMode(900, 900), "Історія Ігор", Styles.Titlebar | Styles.Close); // Збільшуємо висоту вікна
             float rowHeight = 40;
             float startY = 60;
             float startX = 20;
@@ -148,7 +134,7 @@ class Program
             float buttonX = startX;
             float buttonY = startY + historyData.Count * rowHeight + 20; // Розміщуємо кнопку під сіткою
 
-            ClearHistoryButton clearButton = new ClearHistoryButton("Очистити дані", font, new Vector2f(buttonX, buttonY), new Vector2f(buttonWidth, buttonHeight));
+            ClearHistoryButton clearButton = new ClearHistoryButton("Remove data", font, new Vector2f(buttonX, buttonY), new Vector2f(buttonWidth, buttonHeight));
             clearButton.Clicked += (sender, args) =>
             {
                 try

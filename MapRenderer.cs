@@ -4,7 +4,7 @@ using SFML.Window;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq; // Для FirstOrDefault
+using System.Linq;
 
 namespace k
 {
@@ -22,12 +22,12 @@ namespace k
         public List<Sprite> spritesWall { get; set; } = new();
         public List<Sprite> spritesBox { get; set; } = new();
 
-        private bool generated = false;
-        private Sprite buttonSprite = null; // Спрайт кнопки-стіни
-        private Vector2i buttonPosition; // Позиція кнопки-стіни
-        private Color buttonDefaultColor;
 
-        public event EventHandler ButtonClicked; // Подія натискання на кнопку
+        private bool generated = false;
+        private Sprite buttonSprite = null;
+        private Vector2i buttonPosition;
+
+        public event EventHandler ButtonClicked;
 
         public MapRenderer((string, string) level_textures, string boxPath)
         {
@@ -42,22 +42,18 @@ namespace k
             {
                 GenerateWalls(window.Size);
                 GenerateBoxes(window.Size);
-                SelectRandomButtonWall(); // Обираємо випадкову стіну як кнопку
                 generated = true;
             }
 
-            // Малюємо блоки фону
             for (int y = 0; y < window.Size.Y; y += tileSize)
                 for (int x = 0; x < window.Size.X; x += tileSize)
                     DrawTile(window, block, x, y);
 
-            // Малюємо стіни
             foreach (var sprite in spritesWall)
             {
                 window.Draw(sprite);
             }
 
-            // Малюємо коробки
             foreach (var pos in BoxPositions)
             {
                 var boxSprite = new Sprite(boxTexture)
@@ -67,28 +63,9 @@ namespace k
                 window.Draw(boxSprite);
             }
 
-            // Малюємо кнопку окремо, щоб застосувати чорний колір
             if (buttonSprite != null)
             {
-                buttonSprite.Color = Color.Black;
                 window.Draw(buttonSprite);
-            }
-        }
-
-        public void HandleInput(MouseButtonEventArgs e)
-        {
-            if (buttonSprite != null && e.Button == Mouse.Button.Left)
-            {
-                var mousePos = new Vector2f(e.X, e.Y);
-                if (buttonSprite.GetGlobalBounds().Contains(mousePos.X, mousePos.Y))
-                {
-                    // Генеруємо випадковий результат
-                    Random random = new Random();
-                    int result = random.Next(0, 101); // Від 0 до 100
-
-                    // Викликаємо подію, передаючи результат
-                    ButtonClicked?.Invoke(this, new ResultEventArgs(result));
-                }
             }
         }
 
@@ -158,30 +135,7 @@ namespace k
             window.Draw(spr);
         }
 
-        private void SelectRandomButtonWall()
-        {
-            if (spritesWall.Count > 0)
-            {
-                Random random = new Random();
-                int randomIndex = random.Next(spritesWall.Count);
-                buttonSprite = spritesWall[randomIndex];
-                buttonPosition = WallPositions[randomIndex];
-                buttonDefaultColor = buttonSprite.Color; // Зберігаємо початковий колір
-                // Видаляємо кнопку зі звичайного списку стін, щоб малювати її окремо
-                spritesWall.RemoveAt(randomIndex);
-                WallPositions.RemoveAt(randomIndex);
-            }
-        }
+      
     }
 
-    // Клас для передачі результату події
-    public class ResultEventArgs : EventArgs
-    {
-        public int Result { get; }
-
-        public ResultEventArgs(int result)
-        {
-            Result = result;
-        }
-    }
 }

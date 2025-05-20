@@ -13,11 +13,11 @@ namespace k
         private readonly int playerCount;
         private List<(string, string)> levels = new();
         private const string ResultsFileName = "tournament_results.json";
-        private List<Dictionary<string, object>> gameHistory = new List<Dictionary<string, object>>(); // Змінюємо тип для зберігання різних типів даних
+        private List<Dictionary<string, object>> gameHistory = new List<Dictionary<string, object>>();
 
         public Tournament(string assetsPath, int playerCount)
         {
-            this.assetsPath = @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content";
+            this.assetsPath = assetsPath; // Use the passed assetsPath
             levels = new List<(string, string)>
             {
                 (Path.Combine(assetsPath, "gray_block.png"), Path.Combine(assetsPath, "gray_wall.png")),
@@ -52,9 +52,8 @@ namespace k
         public void Start(RenderWindow window)
         {
             var overallResults = new Dictionary<string, int>();
-            DateTime endTime = DateTime.Now; // Фіксуємо час закінчення турніру
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++) // You might want to adjust this loop if a session can end early
             {
                 var session = new GameSession(levels[i], assetsPath, playerCount, window);
                 session.Run(window);
@@ -67,28 +66,33 @@ namespace k
                     overallResults[kv.Key] = overallResults.TryGetValue(kv.Key, out var v) ? v + kv.Value : kv.Value;
                 }
 
-                // Серіалізуємо результати раунду разом з часом закінчення
-                SerializeResults(roundResults, endTime);
+                // If a session ends prematurely (e.g., by Esc), you might want to break the tournament loop
+                // You'll need a way for GameSession to report if it ended due to Esc or game over
+                // For now, it will just proceed to the next round or end the tournament.
+                if (!window.IsOpen) break; // If the window was closed during a session
             }
+
+            var resultWindow = new ResultWindow(overallResults, Path.Combine(assetsPath, "Lato-Regular.ttf"));
+            resultWindow.Show();
+            DateTime endTime = DateTime.Now;
 
             Console.WriteLine("=== Final Results ===");
             foreach (var kv in overallResults)
                 Console.WriteLine($"{kv.Key}: {kv.Value}");
 
-            var resultWindow = new ResultWindow(overallResults, Path.Combine(assetsPath, "Lato-Regular.ttf"));
-            resultWindow.Show();
+            SerializeFinalResults(overallResults, endTime);
         }
 
-        private void SerializeResults(Dictionary<string, int> roundResults, DateTime endTime)
+        private void SerializeFinalResults(Dictionary<string, int> finalResults, DateTime endTime)
         {
             try
             {
                 var record = new Dictionary<string, object>();
-                foreach (var kvp in roundResults)
+                foreach (var kvp in finalResults)
                 {
                     record[kvp.Key] = kvp.Value;
                 }
-                record["EndTime"] = endTime.ToString("yyyy.MM.dd/HH:mm"); // Зберігаємо час як рядок
+                record["EndTime"] = endTime.ToString("yyyy.MM.dd/HH:mm");
                 gameHistory.Add(record);
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 string jsonString = JsonSerializer.Serialize(gameHistory, options);
@@ -96,7 +100,7 @@ namespace k
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Помилка при серіалізації результатів: {ex.Message}");
+                Console.WriteLine($"Помилка при серіалізації фінальних результатів: {ex.Message}");
             }
         }
     }

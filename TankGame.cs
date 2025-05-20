@@ -25,8 +25,6 @@ namespace k
             renderer = new MapRenderer(level,assetsPath);
             collider = new MapCollider(assetsPath,renderer.spritesWall,renderer.spritesBox);
 
-
-
             // Завантаження текстур танків і бомб
             var redTankTex = new Texture(Path.Combine(assetsPath, "red_tank.png"));
             var blueTankTex = new Texture(Path.Combine(assetsPath, "blue_tank.png"));
@@ -83,5 +81,6 @@ namespace k
 
         public bool IsGameOver() => entities.OfType<Tank>().Count(t => t.IsAlive) <= 1;
         public IEnumerable<GameEntity> Entities => entities;
+        public MapRenderer MapRenderer => renderer;
     }
 }
