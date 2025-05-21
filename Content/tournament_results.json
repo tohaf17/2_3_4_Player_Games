@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "Red": 0,
+    "Blue": 0,
+    "EndTime": "2025.05.21.19:50",
+    "Completed": false
+  },
+  {
+    "Red": 1,
+    "Blue": 2,
+    "EndTime": "2025.05.21.19:50",
+    "Completed": true
+  },
+  {
+    "Red": 0,
+    "Blue": 0,
+    "EndTime": "2025.05.21.19:59",
+    "Completed": false
+  },
+  {
+    "Red": 2,
+    "Blue": 1,
+    "EndTime": "2025.05.21.20:05",
+    "Completed": true
+  }
+]

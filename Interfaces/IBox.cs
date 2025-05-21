@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 
-namespace k
+namespace k.Interfaces
 {
     interface IBox
     {
@@ -16,7 +16,7 @@ namespace k
         public Transformable boxObject { get; set; }
         public bool InUse { get; set; }
         public void Draw(RenderWindow window);
-        
-        
+
+
     }
 }

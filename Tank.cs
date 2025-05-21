@@ -17,7 +17,7 @@ public class Tank : GameEntity, IControllable
         set { sprite = value; }
     }
     private byte[] collisionMask;
-    private bool wasFiring = false;
+    private bool wasFiring = false; // Це поле тепер не буде впливати на частоту пострілів при затиснутій кнопці, лише на логіку обертання.
 
     public byte[] CollisionMask
     {
@@ -29,8 +29,9 @@ public class Tank : GameEntity, IControllable
     private Bomb bomb;
     private int sign = 1;
     private Keyboard.Key fireKey;
-    private float cooldown;
-    private const float BombDelay = 5f;
+    private float cooldown ; // Починаємо з 0, щоб можна було стріляти одразу
+    private float BombDelay = 5f; // Затримка 1 секунда
+
     private const float dAcc = 400f;
     private const float damping = 0.80f;
     private const float rotationSpeed = 200f;
@@ -43,23 +44,21 @@ public class Tank : GameEntity, IControllable
     private Vector2f velocity = new Vector2f(0, 0);
     private PlayerData data = new();
 
-    
     private Vector2f offset;
     private Vector2u screenSize;
     private IBox[] boxes;
     private bool boxChosen = false;
     private IBox? box;
-    
-   
-    
+
+
     public Tank(
-                 MapCollider collider,          
+        MapCollider collider,
         Texture texture,
-                 Vector2f position,
-                 Keyboard.Key key,
-                 Texture greyTexture,
-                 Texture bombTex,
-                 Vector2u screenSize
+        Vector2f position,
+        Keyboard.Key key,
+        Texture greyTexture,
+        Texture bombTex,
+        Vector2u screenSize
         )
     {
         this.collider = collider;
@@ -73,7 +72,6 @@ public class Tank : GameEntity, IControllable
             new Shield(),
             new MiniTank(this.sprite)
         };
-
     }
 
     private void SetupSprite(Texture tex, Vector2f? pos = null)
@@ -86,29 +84,29 @@ public class Tank : GameEntity, IControllable
         };
         collisionMask = PixelPerfectCollision.CreateMask(tex);
     }
+
     public override void Update(Time deltaTime, List<GameEntity> entities, Vector2f offset)
     {
-
         float delta = deltaTime.AsSeconds();
         bomb?.Update(deltaTime, entities, offset);
         if (cooldown > 0) cooldown -= delta;
-        
+
         if (collider.CollidesWithBox(sprite, collisionMask, sprite.Position))
         {
             if (!boxChosen)
             {
-                box = boxes[random.Next(2)];
+                box = boxes[random.Next(boxes.Length)]; // Використовуємо boxes.Length для всіх боксів
                 boxChosen = true;
             }
             box.Timer.Restart();
             box.InUse = true;
             if (box is MiniTank miniTank)
             {
-                miniTank.ApplyEffect(); box.boxObject = sprite;
+                miniTank.ApplyEffect();
+                box.boxObject = sprite;
             }
-            box.boxObject.Position = sprite.Position;
         }
-        if (box is not null&&box.IsExpired())
+        if (box is not null && box.IsExpired())
         {
             box.InUse = false;
             if (box is MiniTank miniTank)
@@ -116,6 +114,7 @@ public class Tank : GameEntity, IControllable
                 miniTank.RevertEffect();
             }
             boxChosen = false;
+            box = null; // Очищаємо посилання на box
         }
         HandleInput(delta, entities);
 
@@ -125,17 +124,16 @@ public class Tank : GameEntity, IControllable
         var tryX = new Vector2f(pos.X - step.X, pos.Y);
         bool hitTankX = CollidesWithTank(tryX, entities);
         bool hitWallX = CollidesWithWall(tryX);
-        if (!hitTankX&&!hitWallX) pos.X = tryX.X; else velocity.X = 0;
+        if (!hitTankX && !hitWallX) pos.X = tryX.X; else velocity.X = 0;
 
         var tryY = new Vector2f(pos.X, pos.Y - step.Y);
         bool hitTankY = CollidesWithTank(tryY, entities);
         bool hitWallY = CollidesWithWall(tryY);
-        if (!hitTankY&&!hitWallY) pos.Y = tryY.Y; else velocity.Y = 0;
+        if (!hitTankY && !hitWallY) pos.Y = tryY.Y; else velocity.Y = 0;
 
         sprite.Position = pos;
         velocity *= damping;
-        sprite.Position = pos;
-        if (box is not null )
+        if (box is not null)
         {
             box.boxObject.Position = sprite.Position;
         }
@@ -155,23 +153,24 @@ public class Tank : GameEntity, IControllable
 
     }
 
-
     public void HandleInput(float dt, List<GameEntity> entities)
     {
         if (!IsAlive) return;
 
-        bool isFiring = Keyboard.IsKeyPressed(fireKey);
+        bool isFiringNow = Keyboard.IsKeyPressed(fireKey);
 
-        if ((bomb == null || !bomb.IsActive) && cooldown <= 0f && isFiring)
+        // <-- ОСНОВНА ЗМІНА ТУТ: видалено !wasFiring з умови пострілу
+        if (isFiringNow && cooldown <= 0f)
         {
             float a = sprite.Rotation * (float)Math.PI / 180f;
             var dir = new Vector2f(-(float)Math.Sin(a), (float)Math.Cos(a));
             var spawn = sprite.Position + dir * 32f;
             bomb = new Bomb(bombTexture, spawn, dir, sprite.Rotation, this, screenSize, collider);
-            cooldown = BombDelay;
+            cooldown = BombDelay; // Встановлюємо кулдаун на 1 секунду (або швидше, якщо RapidFire активний)
         }
 
-        if (isFiring)
+        // Логіка руху танка (якщо кнопка стрільби є також кнопкою руху)
+        if (isFiringNow)
         {
             float a = (sprite.Rotation - 90f) * (float)Math.PI / 180f;
             var dir = new Vector2f((float)Math.Cos(a), (float)Math.Sin(a));
@@ -183,7 +182,7 @@ public class Tank : GameEntity, IControllable
             sprite.Rotation += sign * rotationSpeed * dt;
 
             var other = entities.OfType<Tank>()
-                                .FirstOrDefault(t => t != this && Intersects(t, sprite.Position));
+                                 .FirstOrDefault(t => t != this && Intersects(t, sprite.Position));
             var smth = collider.Collides(this.sprite, this.collisionMask, this.sprite.Position).Item2;
 
             if (other != null)
@@ -202,22 +201,19 @@ public class Tank : GameEntity, IControllable
             }
         }
 
-        if (wasFiring && !isFiring)
+        // wasFiring тепер використовується лише для зміни напрямку обертання після відпускання кнопки
+        if (wasFiring && !isFiringNow)
         {
             sign = -sign;
         }
-
-        wasFiring = isFiring;
-
+        wasFiring = isFiringNow;
     }
-
-
 
     public override void Draw(RenderWindow window)
     {
         if (bomb is not null && bomb.IsActive)
             bomb.Draw(window);
-        if (box is Shield&& box.InUse)
+        if (box is Shield && box.InUse)
         {
             box.Draw(window);
         }
@@ -225,7 +221,7 @@ public class Tank : GameEntity, IControllable
     }
     public bool HasShield()
     {
-        if(box is Shield)
+        if (box is Shield)
         {
             return box.InUse;
         }
@@ -244,8 +240,6 @@ public class Tank : GameEntity, IControllable
     private bool CollidesWithWall(Vector2f testPos)
         => collider.Collides(sprite, collisionMask, testPos).Item1;
 
-   
-    
     private bool CollidesWithTank(Vector2f pos, List<GameEntity> entities)
     {
         var old = sprite.Position;
@@ -273,5 +267,4 @@ public class Tank : GameEntity, IControllable
         sprite.Position = old;
         return hit;
     }
-
 }

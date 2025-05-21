@@ -15,13 +15,14 @@ namespace k
 
         private readonly MapRenderer renderer;
         private readonly MapCollider collider;
-
+        public  string assetsPath;
         private Random random = new();
 
 
         public TankGame((string,string) level,string assetsPath, int playerCount, RenderWindow window)
         {
             screenSize = window.Size;
+            this.assetsPath = assetsPath;
             renderer = new MapRenderer(level,assetsPath);
             collider = new MapCollider(assetsPath,renderer.spritesWall,renderer.spritesBox);
 

@@ -1,64 +1,65 @@
-﻿using k;
+﻿// GameSession.cs
+using k;
 using SFML.Graphics;
 using SFML.System;
 using System.Collections.Generic;
 using System.Linq;
-using SFML.Window; // Make sure this is included for MouseButtonEventArgs
+using SFML.Window;
+using System;
+using System.IO; // Додано для Path.Combine
 
 namespace k
 {
     public class GameSession
     {
         private readonly TankGame _game;
-        private bool _isSessionOver = false;
-        private RenderWindow _window; // Store the window reference
 
-        public GameSession((string, string) level, string assetsPath,
-                                int playerCount, RenderWindow window)
+        public GameSession((string, string) level, string assetsPath, int playerCount, RenderWindow window)
         {
-            _window = window; // Assign the window reference
-            _game = new TankGame(
-                                     level,
-                                     assetsPath,
-                                     playerCount,
-                                     window);
-
-            // Subscribe to the KeyPressed event
-            _window.KeyPressed += OnKeyPressed;
+            _game = new TankGame(level, assetsPath, playerCount, window);
         }
 
-        private void OnKeyPressed(object sender, KeyEventArgs e)
-        {
-            if (e.Code == Keyboard.Key.Escape)
-            {
-                _isSessionOver = true; // Set the flag to end the session
-            }
-        }
-
-        public void Run(RenderWindow window)
+        // Returns true if session completed normally (game over condition met)
+        // Returns false if session was interrupted (Escape pressed or window closed)
+        public bool Run(RenderWindow window)
         {
             var clock = new Clock();
 
-            while (window.IsOpen && !_game.IsGameOver() && !_isSessionOver)
+            while (window.IsOpen && !_game.IsGameOver())
             {
-                window.DispatchEvents(); // Process events first
+                window.DispatchEvents();
+
+                // Обробка натискання клавіші Escape
+                if (Keyboard.IsKeyPressed(Keyboard.Key.Escape))
+                {
+                    Console.WriteLine("Escape натиснуто. Сесія перервана.");
+                    return false; // Сесія перервана
+                }
 
                 var dt = clock.Restart();
                 _game.Update(dt, window);
 
-                window.Clear(Color.Black);
+                window.Clear(new Color(40, 40, 40));
                 _game.DrawMap(window);
                 _game.DrawEntities(window);
                 window.Display();
             }
 
-            // Unsubscribe from the KeyPressed event to avoid memory leaks
-            _window.KeyPressed -= OnKeyPressed;
+            // Якщо вікно було закрито користувачем (не Escape), повертаємо false
+            if (!window.IsOpen)
+            {
+                Console.WriteLine("Вікно гри закрито під час сесії.");
+                return false;
+            }
+
+            // Якщо гра завершилася (IsGameOver() == true)
+            Console.WriteLine("Гра завершилася звичайним шляхом.");
+            return true; // Сесія завершена нормально
         }
 
         public Dictionary<string, int> GetResults()
             => _game.Entities
-                        .OfType<Tank>()
-                        .ToDictionary(t => t.Data.Color, t => t.Data.Score);
+                     .OfType<Tank>()
+                     .ToDictionary(t => t.Data.Color, t => t.Data.Score);
     }
 }
