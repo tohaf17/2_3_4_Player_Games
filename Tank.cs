@@ -37,10 +37,8 @@ public class Tank : GameEntity, IControllable
         Texture greyTexture,
         Texture bombTex,
         Vector2u screenSize
-        )
+        ):base(collider,screenSize)
     {
-        this.collider = collider;
-        this.screenSize = screenSize;
         this.fireKey = key;
         this.destroyedTexture = greyTexture;
         this.bombTexture = bombTex;
@@ -63,10 +61,10 @@ public class Tank : GameEntity, IControllable
         collisionMask = PixelPerfectCollision.CreateMask(tex);
     }
 
-    public override void Update(Time deltaTime, List<GameEntity> entities, Vector2f offset)
+    public override void Update(Time deltaTime, List<GameEntity> entities)
     {
         float delta = deltaTime.AsSeconds();
-        bomb?.Update(deltaTime, entities, offset);
+        bomb?.Update(deltaTime, entities);
         if (cooldown > 0) cooldown -= delta;
 
         if (collider.CollidesWithBox(sprite, collisionMask, sprite.Position))
@@ -209,7 +207,7 @@ public class Tank : GameEntity, IControllable
                            .Where(t => t != this)
                            .Any(t => PixelPerfectCollision.Test(
                                sprite, collisionMask,
-                               t.sprite, t.collisionMask,
+                               t.Sprite, t.CollisionMask,
                                alphaLimit: 10));
 
         sprite.Position = old;
@@ -222,7 +220,7 @@ public class Tank : GameEntity, IControllable
         sprite.Position = pos;
         bool hit = PixelPerfectCollision.Test(
             sprite, collisionMask,
-            other.sprite, other.collisionMask,
+            other.Sprite, other.CollisionMask,
             alphaLimit: 10);
         sprite.Position = old;
         return hit;

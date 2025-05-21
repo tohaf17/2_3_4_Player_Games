@@ -11,7 +11,7 @@ namespace k
         public Clock Timer { get; set; } = new Clock();
         public bool InUse { get; set; } = false;
 
-        public MiniTank(Sprite tankSprite)
+        public MiniTank(Transformable tankSprite)
         {
             CollectibleObject = tankSprite;
         }

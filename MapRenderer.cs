@@ -24,11 +24,11 @@ namespace k
 
         private bool generated = false;
 
-        public MapRenderer((string, string) level_textures, string boxPath)
+        public MapRenderer((string, string) level_textures)
         {
             block = new Texture(level_textures.Item1);
             wall = new Texture(level_textures.Item2);
-            box = new Texture(Path.Combine(boxPath, "box.png"));
+            box = new Texture(Path.Combine(AssetsPath, "box.png"));
         }
 
         public void Draw(RenderWindow window)
@@ -106,7 +106,7 @@ namespace k
                     SpritesBox.Add(new Sprite(box)
                     {
                         Position = new Vector2f(x, y),
-                        Scale = new Vector2f(TileSize / (float)box.Size.X, TileSize / (float)box.Size.Y),
+                        Scale = new Vector2f(TileSize / (float)wall.Size.X, TileSize / (float)wall.Size.Y),
                         Rotation = 0f,
                         Origin = new Vector2f(0, 0)
                     });

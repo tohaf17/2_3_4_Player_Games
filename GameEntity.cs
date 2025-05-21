@@ -31,9 +31,13 @@ public abstract class GameEntity
         set { collider = value; }
     }
 
-    
+    public GameEntity(MapCollider collider, Vector2u screenSize)
+    {
+        this.collider = collider;
+        this.screenSize = screenSize;
+    }
 
-    public abstract void Update(Time time, List<GameEntity> entities, Vector2f offset);
+    public abstract void Update(Time time, List<GameEntity> entities);
     public abstract void Draw(RenderWindow window);
 
     protected void ApplyScreenWrapping()

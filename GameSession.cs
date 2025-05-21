@@ -1,12 +1,9 @@
-﻿// GameSession.cs
+﻿
 using k;
 using SFML.Graphics;
 using SFML.System;
-using System.Collections.Generic;
-using System.Linq;
+using static k.Constants;
 using SFML.Window;
-using System;
-using System.IO; // Додано для Path.Combine
 
 namespace k
 {
@@ -14,13 +11,11 @@ namespace k
     {
         private readonly TankGame _game;
 
-        public GameSession((string, string) level, string assetsPath, int playerCount, RenderWindow window)
+        public GameSession((string, string) level, int playerCount, RenderWindow window)
         {
-            _game = new TankGame(level, assetsPath, playerCount, window);
+            _game = new TankGame(level,playerCount, window);
         }
 
-        // Returns true if session completed normally (game over condition met)
-        // Returns false if session was interrupted (Escape pressed or window closed)
         public bool Run(RenderWindow window)
         {
             var clock = new Clock();
@@ -29,11 +24,9 @@ namespace k
             {
                 window.DispatchEvents();
 
-                // Обробка натискання клавіші Escape
                 if (Keyboard.IsKeyPressed(Keyboard.Key.Escape))
                 {
-                    Console.WriteLine("Escape натиснуто. Сесія перервана.");
-                    return false; // Сесія перервана
+                    return false; 
                 }
 
                 var dt = clock.Restart();
@@ -45,16 +38,11 @@ namespace k
                 window.Display();
             }
 
-            // Якщо вікно було закрито користувачем (не Escape), повертаємо false
             if (!window.IsOpen)
             {
-                Console.WriteLine("Вікно гри закрито під час сесії.");
                 return false;
             }
-
-            // Якщо гра завершилася (IsGameOver() == true)
-            Console.WriteLine("Гра завершилася звичайним шляхом.");
-            return true; // Сесія завершена нормально
+            return true;
         }
 
         public Dictionary<string, int> GetResults()

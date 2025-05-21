@@ -14,7 +14,6 @@ namespace k
         private float lifeTimeBomb = 3f;
         public bool IsActive { get; private set; } = true;
         
-        private MapCollider collider;
 
 
         public Bomb(Texture texture,
@@ -23,13 +22,11 @@ namespace k
             float rotation,
             Tank owner,
             Vector2u screenSize,
-            MapCollider collider)
+            MapCollider collider) :base(collider,screenSize)
 
         {
             this.directionBomb = direction;
             this.owner = owner;
-            this.screenSize = screenSize;
-            this.collider = collider;
 
             sprite = new Sprite(texture)
             {
@@ -42,7 +39,7 @@ namespace k
             collisionMask = PixelPerfectCollision.CreateMask(texture);
         }
 
-        public override void Update(Time delta, List<GameEntity> entities, Vector2f __)
+        public override void Update(Time delta, List<GameEntity> entities)
         {
             if (!IsActive) return;
 

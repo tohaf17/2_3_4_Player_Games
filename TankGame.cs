@@ -1,4 +1,5 @@
 ﻿using SFML.Graphics;
+using static k.Constants;
 using SFML.System;
 using SFML.Window;
 using System.Collections.Generic;
@@ -15,28 +16,26 @@ namespace k
 
         private readonly MapRenderer renderer;
         private readonly MapCollider collider;
-        public  string assetsPath;
         private Random random = new();
 
 
-        public TankGame((string,string) level,string assetsPath, int playerCount, RenderWindow window)
+        public TankGame((string,string) level, int playerCount, RenderWindow window)
         {
             screenSize = window.Size;
-            this.assetsPath = assetsPath;
-            renderer = new MapRenderer(level,assetsPath);
-            collider = new MapCollider(assetsPath,renderer.SpritesWall,renderer.SpritesBox);
+            renderer = new MapRenderer(level);
+            collider = new MapCollider(renderer.SpritesWall,renderer.SpritesBox);
 
             // Завантаження текстур танків і бомб
-            var redTankTex = new Texture(Path.Combine(assetsPath, "red_tank.png"));
-            var blueTankTex = new Texture(Path.Combine(assetsPath, "blue_tank.png"));
-            var greenTankTex = new Texture(Path.Combine(assetsPath, "green_tank.png"));
-            var yellowTankTex = new Texture(Path.Combine(assetsPath, "yellow_tank.png"));
-            var destroyedTex = new Texture(Path.Combine(assetsPath, "gray_tank.png"));
+            var redTankTex = new Texture(Path.Combine(AssetsPath, "red_tank.png"));
+            var blueTankTex = new Texture(Path.Combine(AssetsPath, "blue_tank.png"));
+            var greenTankTex = new Texture(Path.Combine(AssetsPath, "green_tank.png"));
+            var yellowTankTex = new Texture(Path.Combine(AssetsPath, "yellow_tank.png"));
+            var destroyedTex = new Texture(Path.Combine(AssetsPath, "gray_tank.png"));
 
-            var redBombTex = new Texture(Path.Combine(assetsPath, "red_bomb.png"));
-            var blueBombTex = new Texture(Path.Combine(assetsPath, "blue_bomb.png"));
-            var greenBombTex = new Texture(Path.Combine(assetsPath, "green_bomb.png"));
-            var yellowBombTex = new Texture(Path.Combine(assetsPath, "yellow_bomb.png"));
+            var redBombTex = new Texture(Path.Combine(AssetsPath, "red_bomb.png"));
+            var blueBombTex = new Texture(Path.Combine(AssetsPath, "blue_bomb.png"));
+            var greenBombTex = new Texture(Path.Combine(AssetsPath, "green_bomb.png"));
+            var yellowBombTex = new Texture(Path.Combine(AssetsPath, "yellow_bomb.png"));
 
             // Створення танків (позиції довільні)
             if (playerCount >= 2)
@@ -65,7 +64,7 @@ namespace k
         public void Update(Time deltaTime, RenderWindow window)
         {
             foreach (var entity in entities.OfType<Tank>())
-                entity.Update(deltaTime, entities, default);
+                entity.Update(deltaTime, entities);
         }
 
         public void DrawMap(RenderWindow window)

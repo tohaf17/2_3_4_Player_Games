@@ -20,5 +20,9 @@ namespace k
         public const int BoxCount = 5;
 
         public const float ScaleNumber = 0.5f;
+
+        public const string AssetsPath = @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content";
+        public const string Font= @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content\Lato-Regular.ttf";
+        public const string ResultsFileName = "tournament_results.json";
     }
 }

@@ -1,5 +1,6 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+using static k.Constants;
 using System.Collections.Generic;
 using static System.Formats.Asn1.AsnWriter;
 using static System.Net.Mime.MediaTypeNames;
@@ -18,14 +19,14 @@ namespace k
         public readonly Vector2f wallScale;
         private const int alphaLimit = 10;
 
-        public MapCollider(string assetsPath, List<Sprite> wallTilePositions,List<Sprite> boxSprites, int tileSize = 64)
+        public MapCollider(List<Sprite> wallTilePositions,List<Sprite> boxSprites, int tileSize = 64)
         {
-            wallTexture = new Texture(Path.Combine(assetsPath,"gray_wall.png"));
+            wallTexture = new Texture(Path.Combine(AssetsPath,"gray_wall.png"));
             wallMask = PixelPerfectCollision.CreateMask(wallTexture);
             wallSprite =  wallTilePositions;
 
             boxSprite = boxSprites;
-            boxTexture = new Texture(Path.Combine(assetsPath, "box.png"));
+            boxTexture = new Texture(Path.Combine(AssetsPath, "box.png"));
             boxMask =PixelPerfectCollision.CreateMask(boxTexture);
 
 
