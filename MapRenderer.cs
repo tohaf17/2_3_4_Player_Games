@@ -2,6 +2,7 @@
 using SFML.System;
 using SFML.Window;
 using System;
+using static k.Constants;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,30 +11,24 @@ namespace k
 {
     public class MapRenderer
     {
-        private const int tileSize = 64;
         private readonly Texture block;
         public readonly Texture wall;
-        private readonly Texture boxTexture;
-        private readonly int wallCount = 10;
-        private readonly int boxCount = 5;
+        private readonly Texture box;
 
         public List<Vector2i> WallPositions { get; set; } = new();
         public List<Vector2i> BoxPositions { get; set; } = new();
-        public List<Sprite> spritesWall { get; set; } = new();
-        public List<Sprite> spritesBox { get; set; } = new();
+
+        public List<Sprite> SpritesWall { get; set; } = new();
+        public List<Sprite> SpritesBox { get; set; } = new();
 
 
         private bool generated = false;
-        private Sprite buttonSprite = null;
-        private Vector2i buttonPosition;
-
-        public event EventHandler ButtonClicked;
 
         public MapRenderer((string, string) level_textures, string boxPath)
         {
             block = new Texture(level_textures.Item1);
             wall = new Texture(level_textures.Item2);
-            boxTexture = new Texture(Path.Combine(boxPath, "box.png"));
+            box = new Texture(Path.Combine(boxPath, "box.png"));
         }
 
         public void Draw(RenderWindow window)
@@ -45,49 +40,45 @@ namespace k
                 generated = true;
             }
 
-            for (int y = 0; y < window.Size.Y; y += tileSize)
-                for (int x = 0; x < window.Size.X; x += tileSize)
+            for (int y = 0; y < window.Size.Y; y += TileSize)
+                for (int x = 0; x < window.Size.X; x += TileSize)
                     DrawTile(window, block, x, y);
 
-            foreach (var sprite in spritesWall)
+            foreach (var sprite in SpritesWall)
             {
                 window.Draw(sprite);
             }
 
             foreach (var pos in BoxPositions)
             {
-                var boxSprite = new Sprite(boxTexture)
+                var boxSprite = new Sprite(box)
                 {
                     Position = new Vector2f(pos.X, pos.Y)
                 };
                 window.Draw(boxSprite);
             }
 
-            if (buttonSprite != null)
-            {
-                window.Draw(buttonSprite);
-            }
         }
 
         private void GenerateWalls(Vector2u windowSize)
         {
             Random random = new Random();
             WallPositions.Clear();
-            spritesWall.Clear();
+            SpritesWall.Clear();
 
-            for (int i = 0; i < wallCount; i++)
+            for (int i = 0; i < WallCount; i++)
             {
-                int x = random.Next(0, (int)(windowSize.X / tileSize)) * tileSize;
-                int y = random.Next(0, (int)(windowSize.Y / tileSize)) * tileSize;
+                int x = random.Next(0, (int)(windowSize.X / TileSize)) * TileSize;
+                int y = random.Next(0, (int)(windowSize.Y / TileSize)) * TileSize;
                 Vector2i pos = new Vector2i(x, y);
 
                 if (!WallPositions.Contains(pos))
                 {
                     WallPositions.Add(pos);
-                    spritesWall.Add(new Sprite(wall)
+                    SpritesWall.Add(new Sprite(wall)
                     {
                         Position = new Vector2f(x, y),
-                        Scale = new Vector2f(tileSize / (float)wall.Size.X, tileSize / (float)wall.Size.Y),
+                        Scale = new Vector2f(TileSize / (float)wall.Size.X, TileSize / (float)wall.Size.Y),
                         Rotation = 0f,
                         Origin = new Vector2f(0, 0)
                     });
@@ -99,23 +90,23 @@ namespace k
         {
             Random random = new Random();
             BoxPositions.Clear();
-            spritesBox.Clear();
+            SpritesBox.Clear();
 
             int attempts = 0;
-            while (BoxPositions.Count < boxCount && attempts < 1000)
+            while (BoxPositions.Count < BoxCount && attempts < 1000)
             {
                 attempts++;
-                int x = random.Next(0, (int)(windowSize.X / tileSize)) * tileSize;
-                int y = random.Next(0, (int)(windowSize.Y / tileSize)) * tileSize;
+                int x = random.Next(0, (int)(windowSize.X / TileSize)) * TileSize;
+                int y = random.Next(0, (int)(windowSize.Y / TileSize)) * TileSize;
                 Vector2i pos = new Vector2i(x, y);
 
                 if (!WallPositions.Contains(pos) && !BoxPositions.Contains(pos))
                 {
                     BoxPositions.Add(pos);
-                    spritesBox.Add(new Sprite(boxTexture)
+                    SpritesBox.Add(new Sprite(box)
                     {
                         Position = new Vector2f(x, y),
-                        Scale = new Vector2f(tileSize / (float)boxTexture.Size.X, tileSize / (float)boxTexture.Size.Y),
+                        Scale = new Vector2f(TileSize / (float)box.Size.X, TileSize / (float)box.Size.Y),
                         Rotation = 0f,
                         Origin = new Vector2f(0, 0)
                     });
@@ -128,7 +119,7 @@ namespace k
             var spr = new Sprite(tex)
             {
                 Position = new Vector2f(x, y),
-                Scale = new Vector2f(tileSize / (float)tex.Size.X, tileSize / (float)tex.Size.Y),
+                Scale = new Vector2f(TileSize / (float)tex.Size.X, TileSize / (float)tex.Size.Y),
                 Rotation = rotation,
                 Origin = new Vector2f(0, 0)
             };

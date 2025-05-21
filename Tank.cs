@@ -3,9 +3,6 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using static k.Constants;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace k;
 
@@ -19,19 +16,17 @@ public class Tank : GameEntity, IControllable
     private int sign = 1;
 
     private Keyboard.Key fireKey;
-    private float cooldown ; // Починаємо з 0, щоб можна було стріляти одразу
-    private float BombDelay = 5f; // Затримка 1 секунда
-
-    private readonly MapCollider collider;
+    private float cooldown ; 
+    private float BombDelay = 5f; 
 
     private Random random = new();
     private Vector2f velocity = new Vector2f(0, 0);
     private PlayerData data = new();
 
     
-    private IBox[] boxes;
+    private ICollectible[] boxes;
     private bool boxChosen = false;
-    private IBox? box;
+    private ICollectible? box;
 
 
     public Tank(
@@ -50,7 +45,7 @@ public class Tank : GameEntity, IControllable
         this.destroyedTexture = greyTexture;
         this.bombTexture = bombTex;
         SetupSprite(texture, position);
-        boxes = new IBox[2]
+        boxes = new ICollectible[2]
         {
             new Shield(),
             new MiniTank(this.sprite)
@@ -81,12 +76,11 @@ public class Tank : GameEntity, IControllable
                 box = boxes[random.Next(boxes.Length)]; // Використовуємо boxes.Length для всіх боксів
                 boxChosen = true;
             }
-            box.Timer.Restart();
-            box.InUse = true;
+            box?.Timer.Restart();
+            box.InUse =true;
             if (box is MiniTank miniTank)
             {
                 miniTank.ApplyEffect();
-                box.boxObject = sprite;
             }
         }
         if (box is not null && box.IsExpired())
@@ -116,9 +110,9 @@ public class Tank : GameEntity, IControllable
 
         sprite.Position = pos;
         velocity *= DampingTank;
-        if (box is not null)
+        if (box is IVisualEffect visualEffect && box.InUse)
         {
-            box.boxObject.Position = sprite.Position;
+            box.CollectibleObject.Position = sprite.Position;
         }
         ApplyScreenWrapping();
 
@@ -129,18 +123,15 @@ public class Tank : GameEntity, IControllable
         if (!IsAlive) return;
 
         bool isFiringNow = Keyboard.IsKeyPressed(fireKey);
-
-        // <-- ОСНОВНА ЗМІНА ТУТ: видалено !wasFiring з умови пострілу
+        
         if (isFiringNow && cooldown <= 0f)
         {
             float a = sprite.Rotation * (float)Math.PI / 180f;
             var dir = new Vector2f(-(float)Math.Sin(a), (float)Math.Cos(a));
             var spawn = sprite.Position + dir * 32f;
             bomb = new Bomb(bombTexture, spawn, dir, sprite.Rotation, this, screenSize, collider);
-            cooldown = BombDelay; // Встановлюємо кулдаун на 1 секунду (або швидше, якщо RapidFire активний)
+            cooldown = BombDelay;
         }
-
-        // Логіка руху танка (якщо кнопка стрільби є також кнопкою руху)
         if (isFiringNow)
         {
             float a = (sprite.Rotation - 90f) * (float)Math.PI / 180f;
@@ -152,21 +143,21 @@ public class Tank : GameEntity, IControllable
             float oldRot = sprite.Rotation;
             sprite.Rotation += sign * RotationSpeedTank * dt;
 
-            var other = entities.OfType<Tank>()
+            var tankCollidesWIthOther = entities.OfType<Tank>()
                                  .FirstOrDefault(t => t != this && Intersects(t, sprite.Position));
-            var smth = collider.Collides(this.sprite, this.collisionMask, this.sprite.Position).Item2;
+            var positionWall = collider.Collides(this.sprite, this.collisionMask, this.sprite.Position).Item2;
 
-            if (other != null)
+            if (tankCollidesWIthOther != null)
             {
                 sprite.Rotation = oldRot;
-                var diff = sprite.Position - other.Position;
+                var diff = sprite.Position - tankCollidesWIthOther.Position;
                 float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
                 if (len > 0) sprite.Position += (diff / len) * PushStrengthTank;
             }
-            else if (smth is not null)
+            else if (positionWall is not null)
             {
                 sprite.Rotation = oldRot;
-                var diff = sprite.Position - smth.Position;
+                var diff = sprite.Position - positionWall.Position;
                 float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
                 if (len > 0) sprite.Position += (diff / len) * PushStrengthTank;
             }
@@ -182,10 +173,12 @@ public class Tank : GameEntity, IControllable
     public override void Draw(RenderWindow window)
     {
         if (bomb is not null && bomb.IsActive)
-            bomb.Draw(window);
-        if (box is Shield && box.InUse)
         {
-            box.Draw(window);
+            bomb.Draw(window);
+        }
+        if (box is IVisualEffect visualEffect && box.InUse)
+        {
+            visualEffect.Draw(window);
         }
         window.Draw(sprite);
     }

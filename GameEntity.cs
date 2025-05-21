@@ -7,7 +7,8 @@ public abstract class GameEntity
 {
     protected Sprite sprite;
     protected Vector2u screenSize; 
-    protected byte[] collisionMask;// Це поле тепер не буде впливати на частоту пострілів при затиснутій кнопці, лише на логіку обертання.
+    protected byte[] collisionMask;
+    protected MapCollider collider;
 
     public byte[] CollisionMask
     {
@@ -24,7 +25,13 @@ public abstract class GameEntity
         get { return screenSize; }
         set { screenSize = value; }
     }
-    //ВИВЕСТИ У КОНСТАНТИ
+    public MapCollider Collider
+    {
+        get { return collider; }
+        set { collider = value; }
+    }
+
+    
 
     public abstract void Update(Time time, List<GameEntity> entities, Vector2f offset);
     public abstract void Draw(RenderWindow window);
@@ -33,7 +40,6 @@ public abstract class GameEntity
     {
         if (sprite == null)
         {
-            Console.WriteLine("Помилка: Спрайт не ініціалізовано в GameEntity для обгортання екрану.");
             return;
         }
         float screenWidth = screenSize.X;

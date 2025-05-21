@@ -15,5 +15,10 @@ namespace k
         public const int TileSize = 64;
 
         public const float SpeedBomb = 150f;
+
+        public const int WallCount = 20;
+        public const int BoxCount = 5;
+
+        public const float ScaleNumber = 0.5f;
     }
 }

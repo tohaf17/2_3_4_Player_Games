@@ -568,17 +568,3 @@ class Program
         }
     }
 }
-
-// Заглушка для Tournament
-
-
-// Заглушка для MapRenderer
-
-
-// Клас ButtonManagerMainMenu
-
-// Клас Button
-
-
-
-// Клас ClearHistoryButton

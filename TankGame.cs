@@ -24,7 +24,7 @@ namespace k
             screenSize = window.Size;
             this.assetsPath = assetsPath;
             renderer = new MapRenderer(level,assetsPath);
-            collider = new MapCollider(assetsPath,renderer.spritesWall,renderer.spritesBox);
+            collider = new MapCollider(assetsPath,renderer.SpritesWall,renderer.SpritesBox);
 
             // Завантаження текстур танків і бомб
             var redTankTex = new Texture(Path.Combine(assetsPath, "red_tank.png"));

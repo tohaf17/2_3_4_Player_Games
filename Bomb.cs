@@ -10,11 +10,8 @@ namespace k
     public class Bomb : GameEntity
     {
         private readonly Vector2f directionBomb;
-        
         private readonly Tank owner;
         private float lifeTimeBomb = 3f;
-        private readonly byte[] collisionMask;
-
         public bool IsActive { get; private set; } = true;
         
         private MapCollider collider;
