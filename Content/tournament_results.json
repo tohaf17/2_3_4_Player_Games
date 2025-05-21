@@ -22,5 +22,13 @@
     "Blue": 1,
     "EndTime": "2025.05.21.20:05",
     "Completed": true
+  },
+  {
+    "Red": 0,
+    "Blue": 0,
+    "Green": 0,
+    "Yellow": 0,
+    "EndTime": "2025.05.21.20:47",
+    "Completed": false
   }
 ]

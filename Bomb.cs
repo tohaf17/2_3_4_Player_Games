@@ -1,5 +1,6 @@
 ﻿using SFML.Graphics;
 using SFML.System;
+using static k.Constants;
 using SFML.Window;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +9,14 @@ namespace k
 {
     public class Bomb : GameEntity
     {
-        private readonly Sprite sprite;
-        private readonly Vector2f direction;
-        private readonly float speed = 150f;
-
+        private readonly Vector2f directionBomb;
+        
         private readonly Tank owner;
-        private readonly Vector2u screenSize;
-
+        private float lifeTimeBomb = 3f;
         private readonly byte[] collisionMask;
 
         public bool IsActive { get; private set; } = true;
-        private float lifetime = 3f; 
+        
         private MapCollider collider;
 
 
@@ -28,12 +26,10 @@ namespace k
             float rotation,
             Tank owner,
             Vector2u screenSize,
-            MapCollider collider,
-
-            int tileSize = 64)
+            MapCollider collider)
 
         {
-            this.direction = direction;
+            this.directionBomb = direction;
             this.owner = owner;
             this.screenSize = screenSize;
             this.collider = collider;
@@ -54,27 +50,15 @@ namespace k
             if (!IsActive) return;
 
             float dt = delta.AsSeconds();
-            lifetime -= dt;
-            if (lifetime <= 0f)
+            lifeTimeBomb -= dt;
+            if (lifeTimeBomb <= 0f)
             {
                 IsActive = false;
                 return;
             }
-            sprite.Position += direction * speed * dt;
+            sprite.Position += directionBomb * SpeedBomb * dt;
 
-            var bounds = sprite.GetGlobalBounds();
-            float halfW = bounds.Width / 2f;
-            float halfH = bounds.Height / 2f;
-
-            if (sprite.Position.X < -halfW)
-                sprite.Position = new Vector2f(screenSize.X + halfW, sprite.Position.Y);
-            else if (sprite.Position.X > screenSize.X + halfW)
-                sprite.Position = new Vector2f(-halfW, sprite.Position.Y);
-
-            if (sprite.Position.Y < -halfH)
-                sprite.Position = new Vector2f(sprite.Position.X, screenSize.Y + halfH);
-            else if (sprite.Position.Y > screenSize.Y + halfH)
-                sprite.Position = new Vector2f(sprite.Position.X, -halfH);
+            ApplyScreenWrapping();
 
             foreach (var tank in entities.OfType<Tank>())
             {

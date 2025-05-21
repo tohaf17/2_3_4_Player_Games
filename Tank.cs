@@ -2,6 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
+using static k.Constants;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,33 +11,16 @@ namespace k;
 
 public class Tank : GameEntity, IControllable
 {
-    private Sprite sprite;
-    public Sprite Sprite
-    {
-        get { return sprite; }
-        set { sprite = value; }
-    }
-    private byte[] collisionMask;
-    private bool wasFiring = false; // Це поле тепер не буде впливати на частоту пострілів при затиснутій кнопці, лише на логіку обертання.
-
-    public byte[] CollisionMask
-    {
-        get { return collisionMask; }
-        set { collisionMask = value; }
-    }
+    private bool wasFiring = false;
     private Texture destroyedTexture;
     private Texture bombTexture;
+
     private Bomb bomb;
     private int sign = 1;
+
     private Keyboard.Key fireKey;
     private float cooldown ; // Починаємо з 0, щоб можна було стріляти одразу
     private float BombDelay = 5f; // Затримка 1 секунда
-
-    private const float dAcc = 400f;
-    private const float damping = 0.80f;
-    private const float rotationSpeed = 200f;
-    private const float pushStrength = 8f;
-    private const int tileSize = 64;
 
     private readonly MapCollider collider;
 
@@ -44,8 +28,7 @@ public class Tank : GameEntity, IControllable
     private Vector2f velocity = new Vector2f(0, 0);
     private PlayerData data = new();
 
-    private Vector2f offset;
-    private Vector2u screenSize;
+    
     private IBox[] boxes;
     private bool boxChosen = false;
     private IBox? box;
@@ -132,24 +115,12 @@ public class Tank : GameEntity, IControllable
         if (!hitTankY && !hitWallY) pos.Y = tryY.Y; else velocity.Y = 0;
 
         sprite.Position = pos;
-        velocity *= damping;
+        velocity *= DampingTank;
         if (box is not null)
         {
             box.boxObject.Position = sprite.Position;
         }
-        var bounds = sprite.GetGlobalBounds();
-        float halfW = bounds.Width / 2f;
-        float halfH = bounds.Height / 2f;
-
-        if (sprite.Position.X < -halfW)
-            sprite.Position = new Vector2f(screenSize.X + halfW, sprite.Position.Y);
-        else if (sprite.Position.X > screenSize.X + halfW)
-            sprite.Position = new Vector2f(-halfW, sprite.Position.Y);
-
-        if (sprite.Position.Y < -halfH)
-            sprite.Position = new Vector2f(sprite.Position.X, screenSize.Y + halfH);
-        else if (sprite.Position.Y > screenSize.Y + halfH)
-            sprite.Position = new Vector2f(sprite.Position.X, -halfH);
+        ApplyScreenWrapping();
 
     }
 
@@ -174,12 +145,12 @@ public class Tank : GameEntity, IControllable
         {
             float a = (sprite.Rotation - 90f) * (float)Math.PI / 180f;
             var dir = new Vector2f((float)Math.Cos(a), (float)Math.Sin(a));
-            velocity += dir * dAcc * dt;
+            velocity += dir * SpeedTank * dt;
         }
         else
         {
             float oldRot = sprite.Rotation;
-            sprite.Rotation += sign * rotationSpeed * dt;
+            sprite.Rotation += sign * RotationSpeedTank * dt;
 
             var other = entities.OfType<Tank>()
                                  .FirstOrDefault(t => t != this && Intersects(t, sprite.Position));
@@ -190,18 +161,17 @@ public class Tank : GameEntity, IControllable
                 sprite.Rotation = oldRot;
                 var diff = sprite.Position - other.Position;
                 float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
-                if (len > 0) sprite.Position += (diff / len) * pushStrength;
+                if (len > 0) sprite.Position += (diff / len) * PushStrengthTank;
             }
             else if (smth is not null)
             {
                 sprite.Rotation = oldRot;
                 var diff = sprite.Position - smth.Position;
                 float len = (float)Math.Sqrt(diff.X * diff.X + diff.Y * diff.Y);
-                if (len > 0) sprite.Position += (diff / len) * pushStrength;
+                if (len > 0) sprite.Position += (diff / len) * PushStrengthTank;
             }
         }
 
-        // wasFiring тепер використовується лише для зміни напрямку обертання після відпускання кнопки
         if (wasFiring && !isFiringNow)
         {
             sign = -sign;
@@ -233,12 +203,9 @@ public class Tank : GameEntity, IControllable
     public Bomb ActiveBomb => bomb;
     public PlayerData Data => data;
 
-    public void TakeDamage()
-    {
-        SetupSprite(destroyedTexture, sprite.Position);
-    }
-    private bool CollidesWithWall(Vector2f testPos)
-        => collider.Collides(sprite, collisionMask, testPos).Item1;
+    public void TakeDamage()=>SetupSprite(destroyedTexture, sprite.Position);
+    
+    private bool CollidesWithWall(Vector2f testPos)=> collider.Collides(sprite, collisionMask, testPos).Item1;
 
     private bool CollidesWithTank(Vector2f pos, List<GameEntity> entities)
     {
