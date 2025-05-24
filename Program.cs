@@ -16,7 +16,8 @@ class Program
     {
         MainMenu,
         Tank,
-        ViewHistory
+        ViewHistory,
+        HowToPlay
     }
 
     static RenderWindow window;
@@ -24,13 +25,13 @@ class Program
     static Font Font;
     static ButtonManagerMainMenu mainMenu;
     static Clock clock;
-    static MapRenderer mapRenderer; 
+    // static MapRenderer mapRenderer; // If not used, consider removing.
 
     static void Main(string[] args)
     {
         window = new RenderWindow(VideoMode.DesktopMode, "SFML Game", Styles.Titlebar | Styles.Close);
         window.Closed += (_, __) => window.Close();
-        //window.SetFramerateLimit(60);
+        //window.SetFramerateLimit(60); // Закоментовано, бо може конфліктувати з DesktopMode для деяких систем
 
         Font = new Font(k.Constants.Font);
         clock = new Clock();
@@ -48,15 +49,21 @@ class Program
             var mouse = Mouse.GetPosition(window);
             if (currentState == GameState.MainMenu)
             {
+                // Ми передаємо 'false' для isClicked тут, оскільки справжні кліки обробляються в OnMousePressed.
+                // Цей виклик призначений для оновлення станів наведення курсора та правильного малювання.
                 mainMenu.Update(mouse, false);
                 mainMenu.Draw(window);
             }
+            // Додайте логіку для інших станів, якщо вони вимагають оновлення/малювання
+            // if (currentState == GameState.HowToPlay) { /* Логіка для HowToPlay, якщо вона буде в цьому ж вікні */ }
+
             window.Display();
         }
     }
 
     static void OnMousePressed(object s, MouseButtonEventArgs e)
     {
+        // Обробляємо натискання лише якщо ми в головному меню
         if (currentState != GameState.MainMenu)
         {
             return;
@@ -65,75 +72,158 @@ class Program
         if (e.Button != Mouse.Button.Left) return;
         var mouse = Mouse.GetPosition(window);
 
-        if (mainMenu.Update(mouse, true))
+        // Передаємо натискання миші менеджеру кнопок, вказуючи, що відбувся клік.
+        // mainMenu.Update поверне true, якщо клік був по активній кнопці і її стан змінився.
+        bool buttonWasActivated = mainMenu.Update(mouse, true); // isClicked = true тільки при фактичному натисканні
+
+        if (buttonWasActivated)
         {
-            if (mainMenu.ViewHistoryClicked)
+            // Використовуємо нові методи, які автоматично скидають прапорець
+            if (mainMenu.IsViewHistoryClickedAndReset())
             {
                 ShowGameHistory();
-                mainMenu.ViewHistoryClicked = false;
+                // Тут прапорець вже скинутий методом IsViewHistoryClickedAndReset()
+            }
+            else if (mainMenu.IsHowToPlayClickedAndReset())
+            {
+                ShowHowToPlay();
+                // Тут прапорець вже скинутий методом IsHowToPlayClickedAndReset()
             }
             else if (mainMenu.SelectedPlayers > 0)
             {
-                currentState = GameState.Tank;
+                // Якщо була обрана кнопка гравців, запускаємо гру
+                currentState = GameState.Tank; // Змінюємо стан на гру
                 var tournament = new Tournament(mainMenu.SelectedPlayers);
-                tournament.Start(window);
+                tournament.Start(window); // Запускаємо турнір, передаючи головне вікно
 
-                currentState = GameState.MainMenu;
-                mainMenu.SelectedPlayers = 0;
+                currentState = GameState.MainMenu; // Після завершення турніру повертаємось до меню
+                mainMenu.SelectedPlayers = 0; // Скидаємо вибрану кількість гравців
+                // Важливо: після повернення до меню, деселектуємо всі кнопки гравців,
+                // бо інакше вони можуть залишитись візуально "натиснутими"
+                foreach (var btn in mainMenu.Buttons)
+                {
+                    if (btn.GetText().Contains("Players"))
+                    {
+                        btn.Deselect();
+                    }
+                }
             }
+            // Якщо buttonWasActivated == true, але не спрацювали ні ViewHistoryClicked, ні HowToPlayClicked,
+            // і не SelectedPlayers > 0, це означає, що була натиснута кнопка, яка поки що не має дії
+            // або логіка вже оброблена всередині ButtonManagerMainMenu.
+        }
+        // Важливо: якщо mainMenu.Update(mouse, true) поверне false, це означає, що клік був поза кнопками,
+        // або кнопка була натиснута, але її стан не змінився (наприклад, вона вже була вибрана).
+        // У цьому випадку нічого не відбувається.
+    }
+
+    // --- Решта методів ShowHowToPlay(), ShowGameHistory(), UpdateScrollbarThumbPosition(),
+    // --- ApplyScrollLimits(), LoadGameHistoryData(), DrawGridHeader(), DrawGridData()
+    // --- залишаються без змін, оскільки вони коректно працюють з вікнами та даними.
+
+    static void ShowHowToPlay()
+    {
+        // ... (код ShowHowToPlay залишається без змін) ...
+        float windowWidth = VideoMode.DesktopMode.Width * 0.6f;
+        float windowHeight = VideoMode.DesktopMode.Height * 0.7f;
+
+        var howToPlayWindow = new RenderWindow(new VideoMode((uint)windowWidth, (uint)windowHeight), "How To Play", Styles.Titlebar | Styles.Close);
+        howToPlayWindow.SetFramerateLimit(60);
+
+        howToPlayWindow.Closed += (_, __) => howToPlayWindow.Close();
+
+        Text title = new Text("How To Play", Font, 36)
+        {
+            FillColor = new Color(255, 220, 100)
+        };
+        FloatRect titleRect = title.GetLocalBounds();
+        title.Origin = new Vector2f(titleRect.Left + titleRect.Width / 2f, titleRect.Top + titleRect.Height / 2f);
+        title.Position = new Vector2f(howToPlayWindow.Size.X / 2f, 40);
+
+        string instructionsTextContent =
+            "Welcome to Tanks!\n\n" +
+            "Objective: Destroy all enemy tanks to win the round. Be the last tank standing!\n\n" +
+            "Controls:\n" +
+            " - Red tank (Q): Move and shoot\n" +
+            " - Blue tank (M): Move and shoot\n" +
+            " - Green tank (NumPad9): Move and shoot\n" +
+            " - Yellow tank (V): Move and shoot\n" +
+            " - Bomb: Fire using the same dedicated button as for regular shots.\n\n" +
+            "Power-ups (active for 10 seconds):\n" +
+            " - Shield Pack: Creates a protective shield around your tank.\n" +
+            " - Mini Boost: Temporarily shrinks your tank, making it harder to hit.\n\n" +
+            "Tips:\n" +
+            " - Use wall blocks for cover.\n" +
+            " - Anticipate enemy movements.\n" +
+            " - Collect power-ups to gain an advantage.\n\n" +
+            "Good luck, Commander!";
+
+        Text instructionsText = new Text(instructionsTextContent, Font, 20)
+        {
+            FillColor = Color.White,
+            Position = new Vector2f(50, 120)
+        };
+        while (howToPlayWindow.IsOpen)
+        {
+            howToPlayWindow.DispatchEvents();
+            howToPlayWindow.Clear(new Color(50, 50, 60));
+
+            howToPlayWindow.Draw(title);
+            howToPlayWindow.Draw(instructionsText);
+
+            howToPlayWindow.Display();
         }
     }
 
     static void ShowGameHistory()
     {
-        float scrollOffset = 0f; 
+        // ... (код ShowGameHistory залишається без змін) ...
+        float scrollOffset = 0f;
         float maxScrollOffset = 0f;
-        const float scrollSpeedMouse = 30f; 
-        const float scrollSpeedKey = 80f; 
+        const float scrollSpeedMouse = 30f;
+        const float scrollSpeedKey = 80f;
 
-        RectangleShape scrollbarTrack; 
-        RectangleShape scrollbarThumb; 
-        bool isDraggingThumb = false; 
-        Vector2f dragStartMousePos = new Vector2f(); 
-        float dragStartScrollOffset = 0f; 
+        RectangleShape scrollbarTrack;
+        RectangleShape scrollbarThumb;
+        bool isDraggingThumb = false;
+        Vector2f dragStartMousePos = new Vector2f();
+        float dragStartScrollOffset = 0f;
 
         try
         {
-            string filePath = Path.Combine(AssetsPath,ResultsFileName);
+            string filePath = Path.Combine(AssetsPath, ResultsFileName);
             var historyData = LoadGameHistoryData(filePath);
 
             if (historyData == null || historyData.Count == 0)
             {
-                
                 Messanger.ShowMessage("History is empty", "History");
                 return;
             }
 
             var keys = new List<string> { "Red", "Blue", "Green", "Yellow", "EndTime", "Completed" };
             float headerRowHeight = 50;
-            float dataRowHeight = 40; 
-            float startYHeader = 100; 
-            float startYData = startYHeader + headerRowHeight; 
+            float dataRowHeight = 40;
+            float startYHeader = 100;
+            float startYData = startYHeader + headerRowHeight;
             float startX = 40;
-            
+
             float effectiveColumnSpacing = 160;
 
             float buttonWidth = 200;
             float buttonHeight = 50;
-            float buttonMarginBottom = 30; 
+            float buttonMarginBottom = 30;
 
-            float desiredWindowWidth = 80 + keys.Count * effectiveColumnSpacing + 40; 
+            float desiredWindowWidth = 80 + keys.Count * effectiveColumnSpacing + 40;
             if (desiredWindowWidth < 900) desiredWindowWidth = 900;
 
-            
-            float scrollableAreaHeight = VideoMode.DesktopMode.Height * 0.7f - startYData - buttonHeight - buttonMarginBottom - 20; 
+            float scrollableAreaHeight = VideoMode.DesktopMode.Height * 0.7f - startYData - buttonHeight - buttonMarginBottom - 20;
             if (scrollableAreaHeight < 200) scrollableAreaHeight = 200;
 
             float totalContentHeight = historyData.Count * dataRowHeight;
             maxScrollOffset = Math.Max(0, totalContentHeight - scrollableAreaHeight);
 
             float maxWindowHeight = VideoMode.DesktopMode.Height * 0.7f;
-            float desiredWindowHeight = startYData + Math.Min(totalContentHeight, scrollableAreaHeight) + buttonHeight + buttonMarginBottom + 20; // +20 для додаткового відступу
+            float desiredWindowHeight = startYData + Math.Min(totalContentHeight, scrollableAreaHeight) + buttonHeight + buttonMarginBottom + 20;
             if (desiredWindowHeight < 600) desiredWindowHeight = 600;
             if (desiredWindowHeight > maxWindowHeight) desiredWindowHeight = maxWindowHeight;
 
@@ -160,18 +250,18 @@ class Program
                 try
                 {
                     File.WriteAllText(filePath, "[]");
-                    historyData.Clear(); 
-                    scrollOffset = 0; 
-                    maxScrollOffset = 0; 
+                    historyData.Clear();
+                    scrollOffset = 0;
+                    maxScrollOffset = 0;
                     Messanger.ShowMessage("History was removed", "Removing");
-                   
+
                 }
                 catch (Exception ex)
                 {
                     Messanger.ShowMessage($"Some problem: {ex.Message}", "Помилка");
                 }
             };
-            
+
             historyWindow.Closed += (_, __) => historyWindow.Close();
             historyWindow.MouseWheelScrolled += (sender, e) =>
             {
@@ -215,12 +305,10 @@ class Program
 
                         if (clickY < thumbCenterY)
                         {
-                            
                             scrollOffset += scrollableAreaHeight * 0.8f;
                         }
                         else
                         {
-                            
                             scrollOffset -= scrollableAreaHeight * 0.8f;
                         }
                         ApplyScrollLimits(ref scrollOffset, maxScrollOffset);
@@ -248,7 +336,6 @@ class Program
                     if (scrollbarTrack.Size.Y - scrollbarThumb.Size.Y > 0)
                     {
                         float scrollbarMovementRatio = deltaY / (scrollbarTrack.Size.Y - scrollbarThumb.Size.Y);
-                        
                         scrollOffset = dragStartScrollOffset - (scrollbarMovementRatio * maxScrollOffset);
                     }
                     ApplyScrollLimits(ref scrollOffset, maxScrollOffset);
@@ -271,7 +358,7 @@ class Program
                 }
 
                 DrawGridHeader(historyWindow, startX, startYHeader, effectiveColumnSpacing, keys.Count, headerRowHeight);
-                
+
                 DrawGridData(historyWindow, startX, startYData, dataRowHeight, effectiveColumnSpacing, historyData.Count, keys.Count, scrollOffset, scrollableAreaHeight);
 
 
@@ -279,7 +366,7 @@ class Program
                 {
                     float currentY = startYData + i * dataRowHeight + scrollOffset;
 
-                    
+
                     if (currentY + dataRowHeight > startYData && currentY < startYData + scrollableAreaHeight)
                     {
                         var row = historyData[i];
@@ -295,23 +382,23 @@ class Program
                                     if (completedElement.ValueKind == JsonValueKind.True)
                                     {
                                         displayValue = "Yes";
-                                        cellColor = new Color(100, 200, 100); 
+                                        cellColor = new Color(100, 200, 100);
                                     }
                                     else if (completedElement.ValueKind == JsonValueKind.False)
                                     {
                                         displayValue = "No";
-                                        cellColor = new Color(200, 100, 100); 
+                                        cellColor = new Color(200, 100, 100);
                                     }
                                     else
                                     {
                                         displayValue = "N/A";
-                                        cellColor = new Color(150, 150, 150); 
+                                        cellColor = new Color(150, 150, 150);
                                     }
                                 }
                                 else
                                 {
                                     displayValue = "N/A";
-                                    cellColor = new Color(150, 150, 150); 
+                                    cellColor = new Color(150, 150, 150);
                                 }
                             }
                             else if (row.TryGetValue(keys[j], out var valueObj))
@@ -347,7 +434,7 @@ class Program
                     }
                 }
 
-                
+
                 Text historyTitle = new Text("Game history", Font, 36)
                 {
                     FillColor = new Color(255, 220, 100)
@@ -386,15 +473,15 @@ class Program
         }
 
         float visibleHeightRatio = scrollableAreaHeight / totalContentHeight;
-        if (visibleHeightRatio > 1f) visibleHeightRatio = 1f; 
+        if (visibleHeightRatio > 1f) visibleHeightRatio = 1f;
 
         float thumbHeight = track.Size.Y * visibleHeightRatio;
-        thumbHeight = Math.Max(30f, thumbHeight); 
+        thumbHeight = Math.Max(30f, thumbHeight);
 
         thumb.Size = new Vector2f(track.Size.X, thumbHeight);
 
         float thumbYPosition = track.Position.Y;
-        
+
         thumbYPosition += (-currentScrollOffset / maxScroll) * (track.Size.Y - thumbHeight);
 
         thumb.Position = new Vector2f(track.Position.X, thumbYPosition);
@@ -402,15 +489,15 @@ class Program
 
     static void ApplyScrollLimits(ref float scrollOffset, float maxScrollOffset)
     {
-        if (scrollOffset > 0) scrollOffset = 0; 
-        if (scrollOffset < -maxScrollOffset) scrollOffset = -maxScrollOffset; 
+        if (scrollOffset > 0) scrollOffset = 0;
+        if (scrollOffset < -maxScrollOffset) scrollOffset = -maxScrollOffset;
     }
 
     static List<Dictionary<string, object>> LoadGameHistoryData(string filePath)
     {
         if (!File.Exists(filePath))
         {
-            File.WriteAllText(filePath, "[]"); 
+            File.WriteAllText(filePath, "[]");
             return new List<Dictionary<string, object>>();
         }
 
@@ -424,12 +511,12 @@ class Program
             var historyData = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(jsonString);
 
             return historyData?.Select(dict => dict.ToDictionary(pair => pair.Key, pair => (object)pair.Value)).ToList()
-                   ?? new List<Dictionary<string, object>>();
+                             ?? new List<Dictionary<string, object>>();
         }
         catch (JsonException ex)
         {
             Messanger.ShowMessage($"{ex.Message}", "Error");
-            
+
             return new List<Dictionary<string, object>>();
         }
     }
