@@ -46,30 +46,21 @@ public abstract class GameEntity
         {
             return;
         }
+
         float screenWidth = screenSize.X;
         float screenHeight = screenSize.Y;
 
-        var bounds = sprite.GetGlobalBounds();
-        float halfW = bounds.Width / 2f;
-        float halfH = bounds.Height / 2f;
-
         Vector2f currentPosition = sprite.Position;
 
-        if (currentPosition.X < -halfW)
-        {
-            sprite.Position = new Vector2f(screenWidth + halfW, currentPosition.Y);
-        }
-        else if (currentPosition.X > screenWidth + halfW)
-        {
-            sprite.Position = new Vector2f(-halfW, currentPosition.Y);
-        }
-        if (currentPosition.Y < -halfH)
-        {
-            sprite.Position = new Vector2f(currentPosition.X, screenHeight + halfH);
-        }
-        else if (currentPosition.Y > screenHeight + halfH)
-        {
-            sprite.Position = new Vector2f(currentPosition.X, -halfH);
-        }
+
+        currentPosition.X = (currentPosition.X + screenWidth) % screenWidth;
+        currentPosition.Y = (currentPosition.Y + screenHeight) % screenHeight;
+
+        if (currentPosition.X < 0)
+            currentPosition.X += screenWidth;
+        if (currentPosition.Y < 0)
+            currentPosition.Y += screenHeight;
+
+        sprite.Position = currentPosition;
     }
 }

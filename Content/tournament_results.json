@@ -4,5 +4,29 @@
     "Blue": 0,
     "EndTime": "02:13",
     "Completed": false
+  },
+  {
+    "Red": 0,
+    "Blue": 0,
+    "EndTime": "13:05",
+    "Completed": false
+  },
+  {
+    "Red": 1,
+    "Blue": 2,
+    "EndTime": "17:08",
+    "Completed": true
+  },
+  {
+    "Red": 1,
+    "Blue": 2,
+    "EndTime": "17:08",
+    "Completed": true
+  },
+  {
+    "Red": 0,
+    "Blue": 0,
+    "EndTime": "14:10",
+    "Completed": false
   }
 ]
