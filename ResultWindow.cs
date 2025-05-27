@@ -2,7 +2,7 @@
 using SFML.System;
 using SFML.Window;
 using System.Collections.Generic;
-using System.Linq; // Added for OrderByDescending
+using System.Linq; 
 
 namespace k
 {
@@ -17,9 +17,9 @@ namespace k
             this.results = results;
             font = new Font(fontPath);
 
-            window = new RenderWindow(new VideoMode(600, 500), "Tournament Results", Styles.Titlebar | Styles.Close); // Increased height for more space
+            window = new RenderWindow(new VideoMode(600, 500), "Tournament Results", Styles.Titlebar | Styles.Close);
             window.Closed += (_, __) => window.Close();
-            window.SetFramerateLimit(60); // Limit framerate for smoother display
+            
         }
 
         public void Show()
@@ -27,7 +27,7 @@ namespace k
             while (window.IsOpen)
             {
                 window.DispatchEvents();
-                window.Clear(new Color(50, 50, 60)); // Darker, slightly blue-gray background
+                window.Clear(new Color(50, 50, 60)); 
 
                 DrawTitle();
                 DrawResults();
@@ -40,59 +40,56 @@ namespace k
         {
             Text title = new Text("Tournament Results", font, 36)
             {
-                FillColor = new Color(255, 220, 100) // Golden-yellow title
+                FillColor = new Color(255, 220, 100) 
             };
 
-            // Center the title horizontally
             FloatRect textRect = title.GetLocalBounds();
             title.Origin = new Vector2f(textRect.Left + textRect.Width / 2f, textRect.Top + textRect.Height / 2f);
-            title.Position = new Vector2f(window.Size.X / 2f, 50); // Position at top, centered
+            title.Position = new Vector2f(window.Size.X / 2f, 50); 
 
             window.Draw(title);
         }
 
         private void DrawResults()
         {
-            float y = 120; // Start drawing results lower to accommodate the title
+            float y = 120;
             int rank = 1;
 
-            // Sort results by score in descending order
             var sortedResults = results.OrderByDescending(kv => kv.Value);
 
             foreach (var kv in sortedResults)
             {
                 Color playerColor;
-                switch (kv.Key.ToLower()) // Determine color based on player name/color
+                switch (kv.Key.ToLower()) 
                 {
                     case "red":
-                        playerColor = new Color(255, 100, 100); // Softer red
+                        playerColor = new Color(255, 100, 100); 
                         break;
                     case "blue":
-                        playerColor = new Color(120, 180, 255); // Softer blue
+                        playerColor = new Color(120, 180, 255);
                         break;
                     case "green":
-                        playerColor = new Color(120, 255, 120); // Softer green
+                        playerColor = new Color(120, 255, 120);
                         break;
                     case "yellow":
-                        playerColor = new Color(255, 255, 120); // Softer yellow
+                        playerColor = new Color(255, 255, 120); 
                         break;
                     default:
-                        playerColor = Color.White; // Default for others
+                        playerColor = Color.White; 
                         break;
                 }
 
-                var text = new Text($"{rank}. {kv.Key}: {kv.Value} points", font, 28) // Slightly larger font, "points" for clarity
+                var text = new Text($"{rank}. {kv.Key}: {kv.Value} points", font, 28) 
                 {
                     FillColor = playerColor
                 };
-
-                // Center each result string
+                
                 FloatRect textRect = text.GetLocalBounds();
                 text.Origin = new Vector2f(textRect.Left + textRect.Width / 2f, textRect.Top + textRect.Height / 2f);
                 text.Position = new Vector2f(window.Size.X / 2f, y);
 
                 window.Draw(text);
-                y += 50; // Increased spacing between lines
+                y += 50; 
                 rank++;
             }
         }

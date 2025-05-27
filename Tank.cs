@@ -17,7 +17,6 @@ public class Tank : GameEntity, IControllable
 
     private Keyboard.Key fireKey;
     private float cooldown ; 
-    private float BombDelay = 5f; 
 
     private Random random = new();
     private Vector2f velocity = new Vector2f(0, 0);
@@ -71,7 +70,7 @@ public class Tank : GameEntity, IControllable
         {
             if (!boxChosen)
             {
-                box = boxes[random.Next(boxes.Length)]; // Використовуємо boxes.Length для всіх боксів
+                box = boxes[random.Next(boxes.Length)]; 
                 boxChosen = true;
             }
             box?.Timer.Restart();
@@ -89,7 +88,7 @@ public class Tank : GameEntity, IControllable
                 miniTank.RevertEffect();
             }
             boxChosen = false;
-            box = null; // Очищаємо посилання на box
+            box = null; 
         }
         HandleInput(delta, entities);
 
@@ -214,7 +213,7 @@ public class Tank : GameEntity, IControllable
         return hit;
     }
 
-    public bool Intersects(Tank other, Vector2f pos)
+    private bool Intersects(Tank other, Vector2f pos)
     {
         var old = sprite.Position;
         sprite.Position = pos;

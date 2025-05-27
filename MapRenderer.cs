@@ -12,7 +12,7 @@ namespace k
     public class MapRenderer
     {
         private readonly Texture block;
-        public readonly Texture wall;
+        private readonly Texture wall;
         private readonly Texture box;
 
         public List<Vector2i> WallPositions { get; set; } = new();
@@ -24,10 +24,10 @@ namespace k
 
         private bool generated = false;
 
-        public MapRenderer((string, string) level_textures)
+        public MapRenderer((string, string) levelTextures)
         {
-            block = new Texture(level_textures.Item1);
-            wall = new Texture(level_textures.Item2);
+            block = new Texture(levelTextures.Item1);
+            wall = new Texture(levelTextures.Item2);
             box = new Texture(Path.Combine(AssetsPath, "box.png"));
         }
 

@@ -8,13 +8,13 @@ public class ButtonText
 {
     private RectangleShape shape;
     private Text label;
-    private Color normalColor = new Color(70, 130, 180); // SteelBlue for normal
-    private Color hoverColor = new Color(100, 149, 237); // CornflowerBlue for hover
-    private Color selectedColor = new Color(255, 215, 0); // Gold for selected
-    private Color textColor = Color.White; // Text color
+    private Color normalColor = new Color(70, 130, 180);
+    private Color hoverColor = new Color(100, 149, 237);
+    private Color selectedColor = new Color(255, 215, 0);
+    private Color textColor = Color.White;
 
-    public bool IsHovered { get; private set; }
-    public bool IsSelected { get; private set; }
+    public bool IsHovered { get; set; }
+    public bool IsSelected { get; set; }
 
     public ButtonText(Vector2f position, Vector2f size, string text, Font font)
     {
@@ -22,16 +22,15 @@ public class ButtonText
         {
             Position = position,
             FillColor = normalColor,
-            OutlineThickness = 2, // Add a border
-            OutlineColor = new Color(50, 90, 120) // Darker shade for border
+            OutlineThickness = 2,
+            OutlineColor = new Color(50, 90, 120)
         };
 
-        label = new Text(text, font, 28) // Slightly larger font for impact
+        label = new Text(text, font, 28)
         {
             FillColor = textColor
         };
 
-        // Center the text within the button
         FloatRect textRect = label.GetLocalBounds();
         label.Origin = new Vector2f(textRect.Left + textRect.Width / 2f, textRect.Top + textRect.Height / 2f);
         label.Position = new Vector2f(position.X + size.X / 2f, position.Y + size.Y / 2f);
@@ -52,7 +51,7 @@ public class ButtonText
         if (IsSelected)
         {
             shape.FillColor = selectedColor;
-            label.FillColor = Color.Black; // Black text on selected
+            label.FillColor = Color.Black;
         }
         else if (IsHovered)
         {

@@ -1,4 +1,4 @@
-﻿using k.Interfaces;
+﻿    using k.Interfaces;
 using SFML.Graphics;
 using SFML.System;
 using static k.Constants;
@@ -21,13 +21,12 @@ namespace k
         
         public void ApplyEffect()
         {
-            if (CollectibleObject is Sprite sprite) // Приводимо до Sprite
+            if (CollectibleObject is Sprite sprite) 
             {
                 sprite.Scale = new Vector2f(64f / sprite.Texture.Size.X * ScaleNumber, 64f / sprite.Texture.Size.Y * ScaleNumber);
             }
         }
 
-        // Метод для скасування ефекту зменшення
         public void RevertEffect()
         {
             if (CollectibleObject is Sprite tankSprite)

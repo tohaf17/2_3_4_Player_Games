@@ -7,19 +7,18 @@ using static SFML.Window.Mouse;
 
 public class ButtonManagerMainMenu
 {
-    public List<ButtonText> Buttons { get; private set; }
+    public List<ButtonText> Buttons { get; set; }
     public int SelectedPlayers { get; set; } = 0;
 
-    // Зробимо ці прапорці приватними і додамо public методи для їх перевірки,
-    // щоб краще контролювати їх скидання
-    private bool _viewHistoryClicked = false;
-    private bool _howToPlayClicked = false;
+    private bool viewHistoryClicked = false;
+    private bool howToPlayClicked = false;
+    private RectangleShape background;
 
     public bool IsViewHistoryClickedAndReset()
     {
-        if (_viewHistoryClicked)
+        if (viewHistoryClicked)
         {
-            _viewHistoryClicked = false; // Скидаємо одразу після перевірки
+            viewHistoryClicked = false;
             return true;
         }
         return false;
@@ -27,16 +26,16 @@ public class ButtonManagerMainMenu
 
     public bool IsHowToPlayClickedAndReset()
     {
-        if (_howToPlayClicked)
+        if (howToPlayClicked)
         {
-            _howToPlayClicked = false; // Скидаємо одразу після перевірки
+            howToPlayClicked = false; 
             return true;
         }
         return false;
     }
 
 
-    private RectangleShape background;
+    
 
     public ButtonManagerMainMenu(Font font, uint screenWidth, uint screenHeight)
     {
@@ -44,7 +43,6 @@ public class ButtonManagerMainMenu
         string[] labels = { "2 Players", "3 Players", "4 Players", "View history", "How to play" };
 
         float width = 250, height = 70, spacing = 25;
-        // Corrected startY calculation to use screenHeight
         float startY = (screenHeight - (height * labels.Length + spacing * (labels.Length - 1))) / 2;
 
 
@@ -69,34 +67,28 @@ public class ButtonManagerMainMenu
     {
         bool anyButtonWasActivatedThisFrame = false;
 
-        // При кліку миші (isClicked == true), ми повинні скинути всі прапорці та SelectedPlayers
-        // до того, як встановити новий, щоб забезпечити взаємне виключення.
         if (isClicked)
         {
-            _viewHistoryClicked = false;
-            _howToPlayClicked = false;
-            SelectedPlayers = 0; // Скидаємо кількість гравців, щоб запобігти випадковим запускам
-                                 // якщо інша кнопка була обрана раніше.
+            viewHistoryClicked = false;
+            howToPlayClicked = false;
+            SelectedPlayers = 0; 
         }
 
         foreach (var button in Buttons)
         {
-            // Оновлюємо стан кнопки (наведення, вибір)
             button.Update(mousePosition, isClicked);
 
-            // Якщо ця кнопка щойно була натиснута
-            if (button.IsSelected && isClicked) // Перевіряємо IsSelected І isClicked
+            if (button.IsSelected && isClicked)
             {
                 anyButtonWasActivatedThisFrame = true;
 
-                // Обробка специфічних дій кнопок та взаємного виключення
                 if (button.GetText() == "How to play")
                 {
-                    _howToPlayClicked = true;
+                    howToPlayClicked = true;
                 }
                 else if (button.GetText() == "View history")
                 {
-                    _viewHistoryClicked = true;
+                    viewHistoryClicked = true;
                 }
                 else if (button.GetText().Contains("Players"))
                 {
@@ -105,10 +97,6 @@ public class ButtonManagerMainMenu
                         SelectedPlayers = numPlayers;
                     }
                 }
-
-                // Після того, як ми визначили, яка кнопка була натиснута,
-                // ми деселектуємо ВСІ кнопки, крім поточної.
-                // Це дуже важливо, щоб кнопки не "залипали" візуально.
                 foreach (var otherButton in Buttons)
                 {
                     if (otherButton != button)
@@ -117,8 +105,6 @@ public class ButtonManagerMainMenu
                     }
                 }
             }
-            // Якщо кнопка не вибрана і на неї не наведено курсор, переконайтеся, що вона деселектована.
-            // Це ловить випадки, коли миша відводиться або натискається інша кнопка.
             else if (!button.IsHovered)
             {
                 button.Deselect();

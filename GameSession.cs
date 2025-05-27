@@ -9,18 +9,18 @@ namespace k
 {
     public class GameSession
     {
-        private readonly TankGame _game;
+        private readonly TankGame game;
 
         public GameSession((string, string) level, int playerCount, RenderWindow window)
         {
-            _game = new TankGame(level,playerCount, window);
+            game = new TankGame(level,playerCount, window);
         }
 
         public bool Run(RenderWindow window)
         {
             var clock = new Clock();
 
-            while (window.IsOpen && !_game.IsGameOver())
+            while (window.IsOpen && !game.IsGameOver())
             {
                 window.DispatchEvents();
 
@@ -30,11 +30,11 @@ namespace k
                 }
 
                 var dt = clock.Restart();
-                _game.Update(dt, window);
+                game.Update(dt, window);
 
                 window.Clear(new Color(40, 40, 40));
-                _game.DrawMap(window);
-                _game.DrawEntities(window);
+                game.DrawMap(window);
+                game.DrawEntities(window);
                 window.Display();
             }
 
@@ -46,7 +46,7 @@ namespace k
         }
 
         public Dictionary<string, int> GetResults()
-            => _game.Entities
+            => game.Entities
                      .OfType<Tank>()
                      .ToDictionary(t => t.Data.Color, t => t.Data.Score);
     }

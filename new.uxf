@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <help_text>&lt;&lt;abstract&gt;&gt;
+GameEntity
+--
+# sprite : Sprite
+# screenSize : Vector2u
+# collisionMask : byte[]
+# collider : MapCollider
+--
++ CollisionMask {get;set;}: byte[]
++ Sprite {get;set;}: Sprite
++ ScreenSize {get;set;}: Vector2u
++ Collider {get;set;}: MapCollider
+--
++ GameEntity(collider: MapCollider, screenSize: Vector2u)
++ {abstract} Update(time: Time, entities: List&lt;GameEntity&gt;): void
++ {abstract} Draw(window: RenderWindow): void
+# ApplyScreenWrapping(): void</help_text>
+  <zoom_level>2</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>180</x>
+      <y>58</y>
+      <w>98</w>
+      <h>68</h>
+    </coordinates>
+    <panel_attributes>/GameEntity/
+--
+# sprite : Sprite
+# screenSize : Vector2u
+# collisionMask : byte[]
+# collider : MapCollider
+--
++ CollisionMask {get;set;}: byte[]
++ Sprite {get;set;}: Sprite
++ ScreenSize {get;set;}: Vector2u
++ Collider {get;set;}: MapCollider
+--
++ GameEntity(collider: MapCollider, screenSize: Vector2u)
++ {abstract} Update(time: Time, entities: List&lt;GameEntity&gt;): void
++ {abstract} Draw(window: RenderWindow): void
+# ApplyScreenWrapping(): void</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>122</x>
+      <y>134</y>
+      <w>212</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>Tank
+--
+	Fields
+	- wasFiring: bool = false
+	- destroyedTexture: Texture {readOnly}
+	- bombTexture: Texture {readOnly}
+	- bomb: Bomb
+	- sign: int = 1
+	- fireKey: Keyboard.Key {readOnly}
+	- cooldown: float
+	- random: Random {readOnly}
+	- velocity: Vector2f
+	- data: PlayerData {readOnly}
+	- boxes: ICollectible[] {readOnly}
+	- boxChosen: bool
+	- box: ICollectible?
+--
+	Methods
+	+ Tank(collider: MapCollider, texture: Texture, position: Vector2f, key: Keyboard.Key, greyTexture: Texture, bombTex: Texture, screenSize: Vector2u)
+	- SetupSprite(tex: Texture, pos: Vector2f?): void
+	+ override Update(deltaTime: Time, entities: List&lt;GameEntity&gt;): void
+	+ HandleInput(dt: float, entities: List&lt;GameEntity&gt;): void
+	+ override Draw(window: RenderWindow): void
+	+ HasShield(): bool
+	+ Position: Vector2f {get}
+	+ IsAlive: bool {get}
+	+ ActiveBomb: Bomb {get}
+	+ Data: PlayerData {get}
+	+ TakeDamage(): void
+	- CollidesWithWall(testPos: Vector2f): bool
+	- CollidesWithTank(pos: Vector2f, entities: List&lt;GameEntity&gt;): bool
+	+ Intersects(other: Tank, pos: Vector2f): bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>276</x>
+      <y>84</y>
+      <w>84</w>
+      <h>104</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;10.0;400.0;10.0;400.0;500.0;290.0;500.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>170</x>
+      <y>242</y>
+      <w>102</w>
+      <h>44</h>
+    </coordinates>
+    <panel_attributes>Bomb
+--
+Fields
+    - directionBomb: Vector2f {readOnly}
+    - owner: Tank {readOnly}
+    - lifeTimeBomb: float = 3f
+--
+Properties
+    + IsActive {get;set;}: bool = true
+--
+Methods
+    + Bomb(texture: Texture, startPosition: Vector2f, direction: Vector2f, rotation: float, owner: Tank, screenSize: Vector2u, collider: MapCollider)
+    + override Update(delta: Time, entities: List&lt;GameEntity&gt;): void
+    + override Draw(window: RenderWindow): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>72</x>
+      <y>72</y>
+      <w>54</w>
+      <h>116</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0;10.0;560.0;250.0;560.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>84</x>
+      <y>68</y>
+      <w>82</w>
+      <h>22</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;Interface&gt;&gt;
+IControllable
+--
++HandleInput(delta: float, list: List&lt;GameEntity&gt;): void</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>270</x>
+      <y>180</y>
+      <w>90</w>
+      <h>84</h>
+    </coordinates>
+    <panel_attributes/>
+    <additional_attributes>10.0;400.0;430.0;400.0;430.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>372</x>
+      <y>124</y>
+      <w>80</w>
+      <h>38</h>
+    </coordinates>
+    <panel_attributes>MiniTank
+--
+Properties
+    + CollectibleObject {get;set;}: Transformable
+    + Timer {get;set;}: Clock
+    + InUse {get;set;}: bool = false
+--
+Methods
+    + MiniTank(tankSprite: Transformable)
+    + IsExpired(): bool
+    + ApplyEffect(): void
+    + RevertEffect(): void
+
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>376</x>
+      <y>70</y>
+      <w>72</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>Shield
+--
+Fields
+    - circleColor: Color = new Color(0, 191, 255)
+    - shield: CircleShape
+--
+Properties
+    + CollectibleObject {get;set;}: Transformable
+    + Timer {get;set;}: Clock
+    + InUse {get;set;}: bool = false
+--
+Methods
+    + Shield()
+    + IsExpired(): bool
+    + Draw(window: RenderWindow): void
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>490</x>
+      <y>130</y>
+      <w>68</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+ICollectible
+--
+Properties
++ CollectibleObject {get;set;}: Transformable</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>502</x>
+      <y>92</y>
+      <w>46</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+IVisualEffect
+--
+Methods
+Draw(window: RenderWindow)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>502</x>
+      <y>156</y>
+      <w>40</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>&lt;&lt;interface&gt;&gt;
+ITimeLimited
+--
+Properties
++ Timer {get;set;}: Clock
++ InUse {get;set;}: bool
+--
+Methods
+IsExpired(): bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>520</x>
+      <y>144</y>
+      <w>6</w>
+      <h>16</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;-</panel_attributes>
+    <additional_attributes>10.0;60.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>450</x>
+      <y>134</y>
+      <w>44</w>
+      <h>12</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>200.0;10.0;120.0;10.0;120.0;40.0;10.0;40.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>446</x>
+      <y>84</y>
+      <w>48</w>
+      <h>56</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>220.0;260.0;140.0;260.0;140.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>446</x>
+      <y>78</y>
+      <w>60</w>
+      <h>26</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>280.0;110.0;190.0;110.0;190.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>372</x>
+      <y>168</y>
+      <w>80</w>
+      <h>66</h>
+    </coordinates>
+    <panel_attributes>Constants
+--
+Fields
+    + {static} SpeedTank: float = 400f {const}
+    + {static} DampingTank: float = 0.80f {const}
+    + {static} RotationSpeedTank: float = 200f {const}
+    + {static} PushStrengthTank: float = 8f {const}
+    + {static} TileSize: int = 64 {const}
+    + {static} BombDelay: float = 5f {const}
+    + {static} SpeedBomb: float = 150f {const}
+    + {static} WallCount: int = 15 {const}
+    + {static} BoxCount: int = 5 {const}
+    + {static} ScaleNumber: float = 0.5f {const}
+    + {static} AssetsPath: string {const}
+    + {static} Font: string {const}
+    + {static} ResultsFileName: string {const}
+    + {static} AlphaLimit: int = 10 {const}
+    + {static} CircleRadius: float = 32f {const}
+    + {static} CircleThickness: float = 2f {const}</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>364</x>
+      <y>242</y>
+      <w>138</w>
+      <h>18</h>
+    </coordinates>
+    <panel_attributes>PixelPerfectCollision
+--
+Methods
+    + {static} CreateMask(tx: Texture): byte[]
+    + {static} Test(s1: Sprite, mask1: byte[], s2: Sprite, mask2: byte[], alpaLimit: byte = 0): bool
+</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>386</x>
+      <y>278</y>
+      <w>118</w>
+      <h>48</h>
+    </coordinates>
+    <panel_attributes>MapCollider
+--
+Fields
+- wallTexture: Texture {readOnly}
+- wallMask: byte[] {readOnly}
+- wallSprite: List&lt;Sprite&gt; {readOnly}
+- boxTexture: Texture {readOnly}
+- boxMask: byte[] {readOnly}
+- boxSprite: List&lt;Sprite&gt; {readOnly}
+- wallScale: Vector2f {readOnly}
+--
+Methods
++ MapCollider(wallTilePositions: List&lt;Sprite&gt;, boxSprites: List&lt;Sprite&gt;)
++ Collides(tankSprite: Sprite, tankMask: byte[], testPos: Vector2f): (bool, Sprite?)
++ CollidesWithBox(tankSprite: Sprite, tankMask: byte[], testPos: Vector2f): bool</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>380</x>
+      <y>334</y>
+      <w>126</w>
+      <h>62</h>
+    </coordinates>
+    <panel_attributes>MapRenderer
+--
+Fields
+- block: Texture {readOnly}
+- wall: Texture {readOnly}
+- box: Texture {readOnly}
+- generated: bool = false
+--
+Properties
++ WallPositions {get;set;}: List&lt;Vector2i&gt; = new()
++ BoxPositions {get;set;}: List&lt;Vector2i&gt; = new()
++ SpritesWall {get;set;}: List&lt;Sprite&gt; = new()
++ SpritesBox {get;set;}: List&lt;Sprite&gt; = new()
+--
+Methods
++ MapRenderer(levelTextures: (string, string))
++ Draw(window: RenderWindow): void
+- GenerateWalls(windowSize: Vector2u): void
+- GenerateBoxes(windowSize: Vector2u): void
+- DrawTile(window: RenderWindow, tex: Texture, x: int, y: int, rotation: float = 0f): void</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>300</x>
+      <y>268</y>
+      <w>38</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>PlayerData
+--
+Properties
++ Score {get;set;}: int
++ Color {get;set;}: string</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>206</x>
+      <y>292</y>
+      <w>160</w>
+      <h>32</h>
+    </coordinates>
+    <panel_attributes>Tournament
+--
+Fields
+- playerCount: int {readOnly}
+- levels: List&lt;(string, string)&gt; = new() {readOnly}
+--
+Methods
++ Tournament(playerCount: int)
++ Start(window: RenderWindow)
+- SaveGameResult(finalResults: Dictionary&lt;string, int&gt;, endTime: DateTime, tournamentCompletedFully: bool)</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>236</x>
+      <y>330</y>
+      <w>116</w>
+      <h>28</h>
+    </coordinates>
+    <panel_attributes>GameSession
+--
+Fields
+- game: TankGame {readOnly}
+--
+Methods
++ GameSession(level: (string, string), playerCount: int, window: RenderWindow)
++ Run(window: RenderWindow): bool
++ GetResults(): Dictionary&lt;string, int&gt;</panel_attributes>
+    <additional_attributes/>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>256</x>
+      <y>370</y>
+      <w>112</w>
+      <h>54</h>
+    </coordinates>
+    <panel_attributes>TankGame
+--
+Fields
+- entities: List&lt;GameEntity&gt; = new() {readonly}
+- screenSize: Vector2u {readonly}
+- renderer: MapRenderer {readonly}
+- collider: MapCollider {readonly}
+- random: Random = new()
+--
+Methods
++ TankGame(level: (string, string), playerCount: int, window: RenderWindow)
++ Update(deltaTime: Time, window: RenderWindow): void
++ DrawMap(window: RenderWindow): void
++ DrawEntities(window: RenderWindow): void
++ IsGameOver(): bool
++ Entities: IEnumerable&lt;GameEntity&gt;
++ MapRenderer: MapRenderer </panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

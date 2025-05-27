@@ -22,21 +22,20 @@ class Program
 
     static RenderWindow window;
     static GameState currentState = GameState.MainMenu;
-    static Font Font;
+    static Font font;
     static ButtonManagerMainMenu mainMenu;
     static Clock clock;
-    // static MapRenderer mapRenderer; // If not used, consider removing.
 
-    static void Main(string[] args)
+    static void Main()
     {
         window = new RenderWindow(VideoMode.DesktopMode, "SFML Game", Styles.Titlebar | Styles.Close);
         window.Closed += (_, __) => window.Close();
-        //window.SetFramerateLimit(60); // Закоментовано, бо може конфліктувати з DesktopMode для деяких систем
+       
 
-        Font = new Font(k.Constants.Font);
+        font = new Font(k.Constants.Font);
         clock = new Clock();
 
-        mainMenu = new ButtonManagerMainMenu(Font, window.Size.X, window.Size.Y);
+        mainMenu = new ButtonManagerMainMenu(font, window.Size.X, window.Size.Y);
 
         window.MouseButtonPressed += OnMousePressed;
 
@@ -49,13 +48,9 @@ class Program
             var mouse = Mouse.GetPosition(window);
             if (currentState == GameState.MainMenu)
             {
-                // Ми передаємо 'false' для isClicked тут, оскільки справжні кліки обробляються в OnMousePressed.
-                // Цей виклик призначений для оновлення станів наведення курсора та правильного малювання.
                 mainMenu.Update(mouse, false);
                 mainMenu.Draw(window);
             }
-            // Додайте логіку для інших станів, якщо вони вимагають оновлення/малювання
-            // if (currentState == GameState.HowToPlay) { /* Логіка для HowToPlay, якщо вона буде в цьому ж вікні */ }
 
             window.Display();
         }
@@ -63,7 +58,6 @@ class Program
 
     static void OnMousePressed(object s, MouseButtonEventArgs e)
     {
-        // Обробляємо натискання лише якщо ми в головному меню
         if (currentState != GameState.MainMenu)
         {
             return;
@@ -72,34 +66,27 @@ class Program
         if (e.Button != Mouse.Button.Left) return;
         var mouse = Mouse.GetPosition(window);
 
-        // Передаємо натискання миші менеджеру кнопок, вказуючи, що відбувся клік.
-        // mainMenu.Update поверне true, якщо клік був по активній кнопці і її стан змінився.
-        bool buttonWasActivated = mainMenu.Update(mouse, true); // isClicked = true тільки при фактичному натисканні
+        bool buttonWasActivated = mainMenu.Update(mouse, true);
 
         if (buttonWasActivated)
         {
-            // Використовуємо нові методи, які автоматично скидають прапорець
             if (mainMenu.IsViewHistoryClickedAndReset())
             {
                 ShowGameHistory();
-                // Тут прапорець вже скинутий методом IsViewHistoryClickedAndReset()
+                
             }
             else if (mainMenu.IsHowToPlayClickedAndReset())
             {
                 ShowHowToPlay();
-                // Тут прапорець вже скинутий методом IsHowToPlayClickedAndReset()
             }
             else if (mainMenu.SelectedPlayers > 0)
             {
-                // Якщо була обрана кнопка гравців, запускаємо гру
-                currentState = GameState.Tank; // Змінюємо стан на гру
+                currentState = GameState.Tank; 
                 var tournament = new Tournament(mainMenu.SelectedPlayers);
-                tournament.Start(window); // Запускаємо турнір, передаючи головне вікно
+                tournament.Start(window); 
 
-                currentState = GameState.MainMenu; // Після завершення турніру повертаємось до меню
-                mainMenu.SelectedPlayers = 0; // Скидаємо вибрану кількість гравців
-                // Важливо: після повернення до меню, деселектуємо всі кнопки гравців,
-                // бо інакше вони можуть залишитись візуально "натиснутими"
+                currentState = GameState.MainMenu; 
+                mainMenu.SelectedPlayers = 0; 
                 foreach (var btn in mainMenu.Buttons)
                 {
                     if (btn.GetText().Contains("Players"))
@@ -108,22 +95,11 @@ class Program
                     }
                 }
             }
-            // Якщо buttonWasActivated == true, але не спрацювали ні ViewHistoryClicked, ні HowToPlayClicked,
-            // і не SelectedPlayers > 0, це означає, що була натиснута кнопка, яка поки що не має дії
-            // або логіка вже оброблена всередині ButtonManagerMainMenu.
         }
-        // Важливо: якщо mainMenu.Update(mouse, true) поверне false, це означає, що клік був поза кнопками,
-        // або кнопка була натиснута, але її стан не змінився (наприклад, вона вже була вибрана).
-        // У цьому випадку нічого не відбувається.
     }
-
-    // --- Решта методів ShowHowToPlay(), ShowGameHistory(), UpdateScrollbarThumbPosition(),
-    // --- ApplyScrollLimits(), LoadGameHistoryData(), DrawGridHeader(), DrawGridData()
-    // --- залишаються без змін, оскільки вони коректно працюють з вікнами та даними.
 
     static void ShowHowToPlay()
     {
-        // ... (код ShowHowToPlay залишається без змін) ...
         float windowWidth = VideoMode.DesktopMode.Width * 0.6f;
         float windowHeight = VideoMode.DesktopMode.Height * 0.7f;
 
@@ -132,7 +108,7 @@ class Program
 
         howToPlayWindow.Closed += (_, __) => howToPlayWindow.Close();
 
-        Text title = new Text("How To Play", Font, 36)
+        Text title = new Text("How To Play", font, 36)
         {
             FillColor = new Color(255, 220, 100)
         };
@@ -158,7 +134,7 @@ class Program
             " - Collect power-ups to gain an advantage.\n\n" +
             "Good luck, Commander!";
 
-        Text instructionsText = new Text(instructionsTextContent, Font, 20)
+        Text instructionsText = new Text(instructionsTextContent, font, 20)
         {
             FillColor = Color.White,
             Position = new Vector2f(50, 120)
@@ -177,7 +153,6 @@ class Program
 
     static void ShowGameHistory()
     {
-        // ... (код ShowGameHistory залишається без змін) ...
         float scrollOffset = 0f;
         float maxScrollOffset = 0f;
         const float scrollSpeedMouse = 30f;
@@ -241,7 +216,7 @@ class Program
                 FillColor = new Color(150, 150, 160)
             };
 
-            ClearHistoryButton clearButton = new ClearHistoryButton("Delete history", Font,
+            ClearHistoryButton clearButton = new ClearHistoryButton("Delete history", font,
                 new Vector2f((historyWindow.Size.X - buttonWidth) / 2, historyWindow.Size.Y - buttonHeight - buttonMarginBottom),
                 new Vector2f(buttonWidth, buttonHeight));
 
@@ -349,7 +324,7 @@ class Program
 
                 for (int i = 0; i < keys.Count; i++)
                 {
-                    var header = new Text(keys[i], Font, 24)
+                    var header = new Text(keys[i], font, 24)
                     {
                         Position = new Vector2f(startX + i * effectiveColumnSpacing, startYHeader),
                         FillColor = new Color(170, 200, 255)
@@ -424,7 +399,7 @@ class Program
                                 }
                             }
 
-                            var cell = new Text(displayValue, Font, 20)
+                            var cell = new Text(displayValue, font, 20)
                             {
                                 Position = new Vector2f(startX + j * effectiveColumnSpacing, currentY),
                                 FillColor = cellColor
@@ -435,7 +410,7 @@ class Program
                 }
 
 
-                Text historyTitle = new Text("Game history", Font, 36)
+                Text historyTitle = new Text("Game history", font, 36)
                 {
                     FillColor = new Color(255, 220, 100)
                 };

@@ -9,17 +9,15 @@ namespace k
 {
     public class MapCollider
     {
-        public readonly Texture wallTexture;
-        public readonly byte[] wallMask;
+        private readonly Texture wallTexture;
+        private readonly byte[] wallMask;
         private readonly List<Sprite> wallSprite;
-
         private readonly List<Sprite> boxSprite;
-        public readonly Texture boxTexture;
-        public readonly byte[] boxMask;
-        public readonly Vector2f wallScale;
-        private const int alphaLimit = 10;
+        private readonly Texture boxTexture;
+        private readonly byte[] boxMask;
+        private readonly Vector2f wallScale;
 
-        public MapCollider(List<Sprite> wallTilePositions,List<Sprite> boxSprites, int tileSize = 64)
+        public MapCollider(List<Sprite> wallTilePositions,List<Sprite> boxSprites)
         {
             wallTexture = new Texture(Path.Combine(AssetsPath,"gray_wall.png"));
             wallMask = PixelPerfectCollision.CreateMask(wallTexture);
@@ -42,7 +40,7 @@ namespace k
             {
                 
 
-                if (PixelPerfectCollision.Test(tankSprite, tankMask, wallPos, wallMask, alphaLimit))
+                if (PixelPerfectCollision.Test(tankSprite, tankMask, wallPos, wallMask, AlphaLimit))
                 {
                     tankSprite.Position = oldPos;
                     return (true,wallPos);
@@ -59,7 +57,7 @@ namespace k
 
             foreach (var box in boxSprite)
             {
-                if (PixelPerfectCollision.Test(tankSprite, tankMask, box, boxMask, alphaLimit))
+                if (PixelPerfectCollision.Test(tankSprite, tankMask, box, boxMask, AlphaLimit))
                 {
                     tankSprite.Position = oldPos;
                     return true;

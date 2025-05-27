@@ -11,9 +11,8 @@ namespace k
     public class Tournament
     {
         private readonly int playerCount;
+        private GameSession session;
         private List<(string, string)> levels = new();
-        // Видаляємо це поле: private List<Dictionary<string, object>> gameHistory = new List<Dictionary<string, object>>();
-        // Видаляємо метод LoadGameHistory() повністю
 
         public Tournament(int playerCount)
         {
@@ -24,10 +23,7 @@ namespace k
                 (Path.Combine(AssetsPath, "blue_block.png"), Path.Combine(AssetsPath, "blue_wall.png"))
             };
             this.playerCount = playerCount;
-            // Видаляємо виклик: LoadGameHistory();
         }
-
-        // МЕТОД LoadGameHistory() ТУТ БІЛЬШЕ НЕ ПОВИНЕН БУТИ!
 
         public void Start(RenderWindow window)
         {
@@ -45,7 +41,7 @@ namespace k
 
             for (int i = 0; i < levels.Count; i++)
             {
-                GameSession session = new GameSession(levels[i], playerCount, window);
+                session = new GameSession(levels[i], playerCount, window);
                 bool sessionCompletedNormally = session.Run(window);
                 var roundResults = session.GetResults();
 
@@ -69,18 +65,15 @@ namespace k
                 finalResultWindow.Show();
 
                 DateTime endTime = DateTime.Now;
-                // Цей foreach-цикл тут зайвий, він нічого не робить, його можна видалити.
-                // foreach (var kv in overallResults.OrderByDescending(p => p.Value))
 
-                SaveGameResult(overallResults, endTime, true); // Змінив назву методу
+                SaveGameResult(overallResults, endTime, true);
             }
             else
             {
-                SaveGameResult(overallResults, DateTime.Now, false); // Змінив назву методу
+                SaveGameResult(overallResults, DateTime.Now, false);
             }
         }
 
-        // Перейменував метод для більшої ясності, що він зберігає ОДИН результат.
         private void SaveGameResult(Dictionary<string, int> finalResults, DateTime endTime, bool tournamentCompletedFully)
         {
             try
@@ -88,13 +81,11 @@ namespace k
                 string filePath = Path.Combine(AssetsPath, ResultsFileName);
                 List<Dictionary<string, object>> currentHistory = new List<Dictionary<string, object>>();
 
-                // ЗАВАНТАЖУЄМО ІСТОРІЮ ПРЯМО ПЕРЕД ДОДАВАННЯМ НОВОГО ЗАПИСУ
                 if (File.Exists(filePath))
                 {
-                    string jsonText = File.ReadAllText(filePath); // Оголошуємо jsonString тут вперше
+                    string jsonText = File.ReadAllText(filePath);
                     if (!string.IsNullOrWhiteSpace(jsonText) && jsonText != "[]")
                     {
-                        // Десеріалізуємо JsonElement, як це було у вас у LoadGameHistoryData в Program.cs
                         var loadedData = JsonSerializer.Deserialize<List<Dictionary<string, JsonElement>>>(jsonText);
                         if (loadedData != null)
                         {
@@ -111,9 +102,9 @@ namespace k
                 record["EndTime"] = endTime.ToString("HH:mm");
                 record["Completed"] = tournamentCompletedFully;
 
-                currentHistory.Add(record); // Додаємо новий запис до тимчасової історії
+                currentHistory.Add(record);
                 var options = new JsonSerializerOptions { WriteIndented = true };
-                var jsonString = JsonSerializer.Serialize(currentHistory, options); // Використовуємо існуючу змінну
+                var jsonString = JsonSerializer.Serialize(currentHistory, options);
                 File.WriteAllText(filePath, jsonString);
             }
             catch (Exception ex)
