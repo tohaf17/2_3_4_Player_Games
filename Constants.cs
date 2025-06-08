@@ -25,8 +25,8 @@ namespace k
         public const float ScaleNumber = 0.5f;
         public const int AlphaLimit = 10;
 
-        public const string AssetsPath = @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content";
-        public const string Font= @"C:\Users\ADMIN\OneDrive\Desktop\Course_Work\Content\Lato-Regular.ttf";
+        public const string AssetsPath = @"Content";
+        public const string Font= @"Content\Lato-Regular.ttf";
         public const string ResultsFileName = "tournament_results.json";
     }
 }

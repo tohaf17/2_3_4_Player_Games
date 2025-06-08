@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="ButtonManagerMainMenu" Collapsed="true">
+    <Position X="6" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AIQAAAAAAAAoAgAAAAAACAAAAAAAAAAAAQAAAAgAIAA=</HashCode>
+      <FileName>Button\ButtonManagerMainMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.ButtonText" Collapsed="true">
+    <Position X="7.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAgAAAIAAEhAIAABACQAAAAAAAAAABAAAAAAABAA=</HashCode>
+      <FileName>Button\ButtonText.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.Bomb" Collapsed="true">
+    <Position X="3.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAggAAEAAAAAAAAAAAAAAAAAEAAAQAAAA=</HashCode>
+      <FileName>Bomb.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.ClearHistoryButton" Collapsed="true">
+    <Position X="9.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAACAAAAgAAAAAAAAACAAAAACAIAAAAAAAAIAA=</HashCode>
+      <FileName>ClearHistoryButton.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.Constants" Collapsed="true">
+    <Position X="11.25" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAAACAIAQAEBAAQgAAABAEFAAEAAAAAAAAACEAA=</HashCode>
+      <FileName>Constants.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.GameEntity" Collapsed="true">
+    <Position X="2.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAYAAEAAAAAAAgAgAAIAAEAAABAAAAAQAAAAEAAAAAA=</HashCode>
+      <FileName>GameEntity.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.GameSession" Collapsed="true">
+    <Position X="6" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAI=</HashCode>
+      <FileName>GameSession.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.MapCollider" Collapsed="true">
+    <Position X="7.75" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AgAAAAIAAAAAAIAAIAAAAEABACCAAAAQAAAAAAAAAAA=</HashCode>
+      <FileName>MapCollider.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.MapRenderer" Collapsed="true">
+    <Position X="9.5" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAACAAAAAAAIEgBAAAAAAgAAAAAAAQAAQAAEAEAABAE=</HashCode>
+      <FileName>MapRenderer.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.Messanger" Collapsed="true">
+    <Position X="11.25" Y="1.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Message.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.MiniTank" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="5.75" Y="2.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAIABAAAAAAAAAAAAAAACAAAAAAAAAAACAEAAA=</HashCode>
+      <FileName>MiniTank.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="k.PixelPerfectCollision" Collapsed="true">
+    <Position X="7.75" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAACAAAAAA=</HashCode>
+      <FileName>PixelPerfectCollision.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.PlayerData" Collapsed="true">
+    <Position X="9.5" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>PlayerData.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.Program" Collapsed="true">
+    <Position X="11.25" Y="2.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAAACBAJAAAAAAAACAAEAAIBAQDBAAAAQA=</HashCode>
+      <FileName>Program.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.ResultWindow" Collapsed="true">
+    <Position X="6" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAACAABAAAAAAAAAAAAAAAEAAgIAAAAAAAAAAA=</HashCode>
+      <FileName>ResultWindow.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.Shield" Collapsed="true" BaseTypeListCollapsed="true">
+    <Position X="7.75" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIABAAAgABAAAAAAAAAAQAAAAAAAAAACAEAAA=</HashCode>
+      <FileName>Shield.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" Collapsed="true" />
+  </Class>
+  <Class Name="k.Tank" Collapsed="true">
+    <Position X="1.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQQAAACABAAkAkAgQBSQBgIAACEAABAAAAQQgAAAEIA=</HashCode>
+      <FileName>Tank.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="k.TankGame" Collapsed="true">
+    <Position X="9.5" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAYAAAAAAAAAAIAAAAAAAAIAAAAAAQAAAAUAEACBgAA=</HashCode>
+      <FileName>TankGame.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="k.Tournament" Collapsed="true">
+    <Position X="11.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ABAAAAAAACAQAAAAAAEAAAAAAAEAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Tournament.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Interface Name="k.Interfaces.ICollectible" Collapsed="true">
+    <Position X="1.25" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\ICollectible.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="k.Interfaces.IControllable" Collapsed="true">
+    <Position X="6" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IControllable.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="k.Interfaces.ITimeLimited" Collapsed="true">
+    <Position X="1.25" Y="3.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAEAAA=</HashCode>
+      <FileName>Interfaces\ITimeLimited.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="k.Interfaces.IVisualEffect" Collapsed="true">
+    <Position X="7.75" Y="4.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Interfaces\IVisualEffect.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
